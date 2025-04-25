@@ -1,3 +1,5 @@
+"use client";
+
 import BlockSelection from '@/components/BlockSelection';
 import FoodCourtList from '@/components/FoodCourtList';
 import Menu from '@/components/Menu';
@@ -20,3 +22,4 @@ export default function Home() {
     </div>
   );
 }
+
