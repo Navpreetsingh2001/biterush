@@ -69,6 +69,7 @@ const CartPage: FC = () => {
       console.log("Attempting to generate QR Code for total:", totalPrice);
       try {
         const gpayData: GPayQRCode = await generateGPayQRCode(totalPrice);
+        // Simulate GPay data being just the text for the QR code
         const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(gpayData.qrCode)}`;
         setGPayQRCode(qrCodeUrl);
         console.log("QR Code URL generated:", qrCodeUrl);
@@ -93,6 +94,7 @@ const CartPage: FC = () => {
 
     generateQRCode();
 
+  // IMPORTANT: Added gpayQRCode to dependencies to ensure this effect reacts correctly
   }, [totalPrice, isClient, cartItems.length, deliveryLocation, paymentCompletedAt, isGeneratingQR, gpayQRCode, toast]); // Dependencies
 
 
@@ -544,6 +546,7 @@ const CartPage: FC = () => {
                                    <div className="flex justify-center bg-white p-2 rounded-md shadow">
                                        <Image src={gpayQRCode} alt="GPay QR Code" width={200} height={200} priority />
                                    </div>
+                                   <p className="text-xs text-muted-foreground mt-2">(Payment will be simulated automatically after scanning)</p>
                                </>
                            )}
                            {/* Show message if QR generation failed or conditions not met */}
@@ -633,5 +636,3 @@ const CartPage: FC = () => {
 }
 
 export default CartPage;
-
-    
