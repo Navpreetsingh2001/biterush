@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label"; // Import Label
 import { Minus, Plus, Trash2, QrCode, ShoppingBag, ArrowLeft, Clock, Ban, Info, CheckCircle, MapPin, LocateFixed, Image as ImageIcon, Loader2 } from 'lucide-react'; // Added ImageIcon, Loader2
 import Image from 'next/image';
 import Link from 'next/link';
-import { generateGPayQRCode, type GPayQRCode } from '@/services/gpay'; // Ensure this path is correct
+// Corrected import: Use upi.ts and generateUPIQRCode
+import { generateUPIQRCode, type UPIQRCode } from '@/services/upi';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import type { CartItem } from '@/context/CartContext';
@@ -30,7 +31,7 @@ const CartPage: FC = () => {
   const { cartItems, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice, deliveryLocation, setDeliveryLocation } = useCart();
   const { toast } = useToast();
   const router = useRouter();
-  const [gpayQRCode, setGPayQRCode] = useState<string | null>(null);
+  const [upiQRCode, setUpiQRCode] = useState<string | null>(null); // Changed state name
   const [isClient, setIsClient] = useState<boolean>(false);
   const [paymentCompletedAt, setPaymentCompletedAt] = useState<Date | null>(null);
   const [canCancel, setCanCancel] = useState<boolean>(false);
@@ -54,10 +55,10 @@ const CartPage: FC = () => {
   // Generate QR Code Effect - Triggered when location is set and cart is not empty
   useEffect(() => {
     // Guard conditions: Run only on client, before payment, not already generating, location set, cart not empty, price > 0, and QR not already generated
-    if (!isClient || paymentCompletedAt || isGeneratingQR || !deliveryLocation || cartItems.length === 0 || totalPrice <= 0 || gpayQRCode) {
+    if (!isClient || paymentCompletedAt || isGeneratingQR || !deliveryLocation || cartItems.length === 0 || totalPrice <= 0 || upiQRCode) {
         // If conditions are not met, ensure QR code is null and not loading
-        if(gpayQRCode && (!deliveryLocation || cartItems.length === 0 || totalPrice <= 0)) {
-            setGPayQRCode(null); // Clear QR code if cart becomes empty or location removed
+        if(upiQRCode && (!deliveryLocation || cartItems.length === 0 || totalPrice <= 0)) {
+            setUpiQRCode(null); // Clear QR code if cart becomes empty or location removed
         }
         setIsGeneratingQR(false); // Ensure loading state is off
         return;
@@ -68,20 +69,21 @@ const CartPage: FC = () => {
       setIsGeneratingQR(true); // Indicate QR generation start
       console.log("Attempting to generate QR Code for total:", totalPrice);
       try {
-        const gpayData: GPayQRCode = await generateGPayQRCode(totalPrice);
-        // Simulate GPay data being just the text for the QR code
-        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(gpayData.qrCode)}`;
-        setGPayQRCode(qrCodeUrl);
-        console.log("QR Code URL generated:", qrCodeUrl);
+        // Use the corrected service function and type
+        const upiData: UPIQRCode = await generateUPIQRCode(totalPrice);
+        // Simulate UPI data being just the text for the QR code
+        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiData.qrCode)}`; // Use the data from the service
+        setUpiQRCode(qrCodeUrl);
+        console.log("UPI QR Code URL generated:", qrCodeUrl);
          toast({
-             title: "QR Code Ready",
-             description: "Scan the QR code with GPay to complete your payment.",
+             title: "UPI QR Code Ready",
+             description: "Scan the QR code with your UPI app to complete your payment.", // Updated toast text
              variant: "default",
          });
 
       } catch (error) {
         console.error("Failed to generate QR code:", error);
-        setGPayQRCode(null);
+        setUpiQRCode(null);
          toast({
             title: "Error",
             description: "Failed to generate payment QR code. Please try again.",
@@ -94,14 +96,14 @@ const CartPage: FC = () => {
 
     generateQRCode();
 
-  // IMPORTANT: Added gpayQRCode to dependencies to ensure this effect reacts correctly
-  }, [totalPrice, isClient, cartItems.length, deliveryLocation, paymentCompletedAt, isGeneratingQR, gpayQRCode, toast]); // Dependencies
+  // IMPORTANT: Added upiQRCode to dependencies to ensure this effect reacts correctly
+  }, [totalPrice, isClient, cartItems.length, deliveryLocation, paymentCompletedAt, isGeneratingQR, upiQRCode, toast]); // Dependencies
 
 
    // Effect to Simulate Payment Completion AFTER QR Code is generated
    useEffect(() => {
      // Run only if QR code exists and payment hasn't been marked complete yet
-     if (!isClient || !gpayQRCode || paymentCompletedAt) {
+     if (!isClient || !upiQRCode || paymentCompletedAt) {
        return;
      }
 
@@ -121,10 +123,10 @@ const CartPage: FC = () => {
         });
      }, 300); // Delay in ms (adjust if needed, e.g., 100-500ms)
 
-     // Cleanup timeout if gpayQRCode changes or component unmounts
+     // Cleanup timeout if upiQRCode changes or component unmounts
      return () => clearTimeout(paymentTimeout);
 
-   }, [gpayQRCode, isClient, paymentCompletedAt, toast]); // Depends on gpayQRCode state
+   }, [upiQRCode, isClient, paymentCompletedAt, toast]); // Depends on upiQRCode state
 
 
   // Cancellation Timer Effect
@@ -172,7 +174,7 @@ const CartPage: FC = () => {
     }
     const quantity = Math.max(0, newQuantity); // Ensure quantity doesn't go below 0
     updateQuantity(itemId, quantity);
-    setGPayQRCode(null); // Reset QR code on quantity change before payment
+    setUpiQRCode(null); // Reset QR code on quantity change before payment
   };
 
    const handleRemoveItem = (itemId: string) => {
@@ -181,7 +183,7 @@ const CartPage: FC = () => {
        return;
      }
      removeFromCart(itemId);
-     setGPayQRCode(null); // Reset QR code on remove change before payment
+     setUpiQRCode(null); // Reset QR code on remove change before payment
    };
 
    const handleClearCart = () => {
@@ -191,7 +193,7 @@ const CartPage: FC = () => {
      }
      clearCart(); // This now also clears the location in context
      setLocationInput(''); // Clear local input state as well
-     setGPayQRCode(null);
+     setUpiQRCode(null);
      setPaymentCompletedAt(null);
      setCanCancel(false);
      setCancellationExpired(false);
@@ -203,7 +205,7 @@ const CartPage: FC = () => {
        console.log("Cancelling order...");
        clearCart(); // Clear items and location from cart context
        setLocationInput(''); // Clear local input state
-       setGPayQRCode(null); // Remove QR code
+       setUpiQRCode(null); // Remove QR code
        setPaymentCompletedAt(null); // Reset payment timestamp
        setCanCancel(false); // Disable further cancellation attempts
        setCancellationExpired(false); // Reset expiry flag
@@ -234,7 +236,7 @@ const CartPage: FC = () => {
         const trimmedLocation = locationInput.trim();
         if (trimmedLocation) {
             setDeliveryLocation(trimmedLocation); // Update location in context only if not empty
-             setGPayQRCode(null); // Reset QR code if location changes before payment
+             setUpiQRCode(null); // Reset QR code if location changes before payment
         } else {
              toast({ title: "Invalid Location", description: "Please enter a valid delivery location.", variant: "destructive"});
         }
@@ -262,7 +264,7 @@ const CartPage: FC = () => {
                 setLocationInput(locationString);
                 setDeliveryLocation(locationString); // Update context
                 setIsLocating(false);
-                setGPayQRCode(null); // Reset QR code if location changes before payment
+                setUpiQRCode(null); // Reset QR code if location changes before payment
                 toast({ title: "Location Fetched", description: "Current location coordinates set." });
             },
             (error: GeolocationPositionError) => {
@@ -538,23 +540,23 @@ const CartPage: FC = () => {
                                    <p>Generating QR Code...</p>
                                </div>
                            )}
-                           {!isGeneratingQR && gpayQRCode && ( // Ensure QR code exists and not loading
+                           {!isGeneratingQR && upiQRCode && ( // Ensure QR code exists and not loading
                                <>
                                    <p className="text-muted-foreground mb-3 flex items-center justify-center gap-1">
-                                       <QrCode className="h-5 w-5" /> Scan with GPay to Pay
+                                       <QrCode className="h-5 w-5" /> Scan with your UPI App to Pay {/* Updated text */}
                                    </p>
                                    <div className="flex justify-center bg-white p-2 rounded-md shadow">
-                                       <Image src={gpayQRCode} alt="GPay QR Code" width={200} height={200} priority />
+                                       <Image src={upiQRCode} alt="UPI QR Code" width={200} height={200} priority />
                                    </div>
                                    <p className="text-xs text-muted-foreground mt-2">(Payment will be simulated automatically after scanning)</p>
                                </>
                            )}
                            {/* Show message if QR generation failed or conditions not met */}
-                           {!isGeneratingQR && !gpayQRCode && totalPrice > 0 && (
+                           {!isGeneratingQR && !upiQRCode && totalPrice > 0 && (
                                <p className="text-destructive text-sm">Could not generate QR code. Please try again.</p>
                            )}
                            {/* Show message if price is zero */}
-                            {!isGeneratingQR && !gpayQRCode && totalPrice <= 0 && (
+                            {!isGeneratingQR && !upiQRCode && totalPrice <= 0 && (
                                 <p className="text-muted-foreground text-sm">Cart total is zero.</p>
                             )}
                        </div>
@@ -623,7 +625,7 @@ const CartPage: FC = () => {
               </CardContent>
                {/* Footer can be used for final confirmation button if payment isn't immediate */}
                {/* <CardFooter>
-                  {!paymentCompletedAt && deliveryLocation && gpayQRCode && (
+                  {!paymentCompletedAt && deliveryLocation && upiQRCode && (
                      <Button className="w-full" onClick={handleConfirmPayment}>Confirm Payment (Simulated)</Button>
                    )}
                </CardFooter> */}
