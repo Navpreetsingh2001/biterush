@@ -16,7 +16,7 @@ interface MenuItem {
 }
 
 interface MenuProps {
-  foodCourt: string; // This is now the food court ID
+  foodCourtId: string; // Renamed prop to foodCourtId
 }
 
 // Mock data - replace with actual data fetching
@@ -60,6 +60,19 @@ const mockMenus = {
     ]
 };
 
+// Mock food court details lookup
+const foodCourtDetails = {
+    "fc1a": { name: "The Hungry Ram" },
+    "fc2a": { name: "Green Leaf Cafe" },
+    "fc1b": { name: "Pizza Point" },
+    "fc2b": { name: "Curry Corner" },
+    "fc1c": { name: "Burger Hub" },
+    "fc2c": { name: "Noodle Bar" },
+    "fc1d": { name: "Sub Station" },
+    "fc2d": { name: "Coffee Stop" },
+};
+
+
 const getCategoryIcon = (category: string) => {
   switch (category.toLowerCase()) {
     case 'burger': // Keep category name as 'burger' but use Sandwich icon
@@ -76,40 +89,47 @@ const getCategoryIcon = (category: string) => {
 };
 
 
-const Menu: React.FC<MenuProps> = ({ foodCourt }) => {
+const Menu: React.FC<MenuProps> = ({ foodCourtId }) => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [cart, setCart] = useState<MenuItem[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [gpayQRCode, setGPayQRCode] = useState<string | null>(null);
   const [foodCourtName, setFoodCourtName] = useState<string>(''); // To display the name
+  const [isLoading, setIsLoading] = useState(true); // Loading state
 
   useEffect(() => {
+    setIsLoading(true); // Start loading
     // Replace with actual data fetching logic
     const fetchMenu = async () => {
-      // Simulate fetching menu based on foodCourt ID
-      const fetchedMenuItems = mockMenus[foodCourt] || mockMenus["default"];
+      // Simulate fetching menu based on foodCourtId
+      // In a real app, replace mockMenus with an API call:
+      // const response = await fetch(`/api/menu/${foodCourtId}`);
+      // const data = await response.json();
+      // setMenuItems(data.menuItems);
+      // setFoodCourtName(data.foodCourtName);
+
+      const fetchedMenuItems = mockMenus[foodCourtId] || mockMenus["default"];
       setMenuItems(fetchedMenuItems);
 
-      // Simulate fetching food court details (like name) - needed if only ID is passed
-      // In a real app, you might fetch this along with the menu or have it from the previous step
-       const allFoodCourts = Object.values(mockMenus).flat(); // Simplified lookup
-       // This is very inefficient, just for demo. Fetch properly in real app.
-       const fcDetails = Object.entries({
-        "fc1a": "The Hungry Ram", "fc2a": "Green Leaf Cafe",
-        "fc1b": "Pizza Point", "fc2b": "Curry Corner",
-        "fc1c": "Burger Hub", "fc2c": "Noodle Bar",
-        "fc1d": "Sub Station", "fc2d": "Coffee Stop",
-       }).find(([id]) => id === foodCourt);
-       setFoodCourtName(fcDetails ? fcDetails[1] : 'Selected Food Court');
+      // Simulate fetching food court details (like name)
+      const fcDetails = foodCourtDetails[foodCourtId];
+      setFoodCourtName(fcDetails ? fcDetails.name : 'Selected Food Court');
+
 
       // Reset cart when menu changes
       setCart([]);
       setTotalPrice(0);
       setGPayQRCode(null);
+      setIsLoading(false); // Stop loading
     };
 
-    fetchMenu();
-  }, [foodCourt]);
+    if (foodCourtId) {
+       fetchMenu();
+    } else {
+        setIsLoading(false); // Stop loading if no ID
+    }
+
+  }, [foodCourtId]); // Depend on foodCourtId
 
   useEffect(() => {
     const newTotalPrice = cart.reduce((sum, item) => sum + item.price, 0);
@@ -134,6 +154,14 @@ const Menu: React.FC<MenuProps> = ({ foodCourt }) => {
   const handleAddToCart = (item: MenuItem) => {
     setCart(prevCart => [...prevCart, item]);
   };
+
+  if (isLoading) {
+    return <div className="text-center p-10">Loading menu...</div>; // Basic loading indicator
+  }
+
+   if (!foodCourtId || menuItems.length === 0) {
+        return <div className="text-center p-10 text-muted-foreground">Menu not available for this food court.</div>;
+    }
 
   return (
     <div className="mt-8">

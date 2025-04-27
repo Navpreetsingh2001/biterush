@@ -3,13 +3,16 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Building } from "lucide-react"; // Using a generic icon for food courts
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 interface FoodCourtListProps {
   block: string;
-  onFoodCourtSelect: (foodCourt: string) => void;
+  // Removed onFoodCourtSelect as navigation is handled internally
 }
 
-const FoodCourtList: React.FC<FoodCourtListProps> = ({ block, onFoodCourtSelect }) => {
+const FoodCourtList: React.FC<FoodCourtListProps> = ({ block }) => {
+  const router = useRouter(); // Initialize router
+
   // Mock data - replace with actual data fetching later
   const foodCourts = {
     "Block A": [
@@ -32,6 +35,11 @@ const FoodCourtList: React.FC<FoodCourtListProps> = ({ block, onFoodCourtSelect 
 
   const foodCourtsInBlock = foodCourts[block] || [];
 
+  // Function to handle navigation
+  const handleViewMenuClick = (foodCourtId: string) => {
+    router.push(`/menu/${foodCourtId}`); // Navigate to the dynamic menu page
+  };
+
   return (
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4 text-center md:text-left">Food Courts in {block}</h2>
@@ -47,7 +55,7 @@ const FoodCourtList: React.FC<FoodCourtListProps> = ({ block, onFoodCourtSelect 
                  </div>
               </CardHeader>
               <CardContent className="mt-auto pt-4">
-                <Button className="w-full" onClick={() => onFoodCourtSelect(foodCourt.id)}>
+                <Button className="w-full" onClick={() => handleViewMenuClick(foodCourt.id)}>
                   View Menu
                 </Button>
               </CardContent>

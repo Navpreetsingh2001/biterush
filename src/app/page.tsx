@@ -2,13 +2,12 @@
 
 import BlockSelection from '@/components/BlockSelection';
 import FoodCourtList from '@/components/FoodCourtList';
-import Menu from '@/components/Menu';
 import Hero from '@/components/Hero'; // Import the new Hero component
 import { useState } from 'react';
 
 export default function Home() {
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
-  const [selectedFoodCourt, setSelectedFoodCourt] = useState<string | null>(null);
+  // Removed selectedFoodCourt state as menu opens on a new page
 
   return (
     <div className="container mx-auto p-4">
@@ -18,15 +17,14 @@ export default function Home() {
         selectedBlock={selectedBlock} // Pass selected block state
         onBlockSelect={(block) => {
           setSelectedBlock(block);
-          setSelectedFoodCourt(null); // Reset food court when block changes
+          // No need to reset food court state here anymore
         }}
       />
       {selectedBlock && (
-        <FoodCourtList block={selectedBlock} onFoodCourtSelect={(foodCourt) => setSelectedFoodCourt(foodCourt)} />
+        // FoodCourtList will now handle navigation internally
+        <FoodCourtList block={selectedBlock} />
       )}
-      {selectedFoodCourt && (
-        <Menu foodCourt={selectedFoodCourt} />
-      )}
+      {/* Removed Menu component rendering from here */}
     </div>
   );
 }
