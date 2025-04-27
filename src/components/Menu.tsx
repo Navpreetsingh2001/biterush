@@ -1,12 +1,14 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react'; // Import useRef
 import { useCart } from '@/context/CartContext'; // Import useCart hook
 import type { MenuItem } from '@/types'; // Use type import
 import { ShoppingCart, Sandwich, Pizza, Salad, Utensils } from 'lucide-react'; // Replaced Burger with Sandwich
 import Image from 'next/image'; // Import Image component
+import { gsap } from 'gsap'; // Import GSAP
 
 // Mock data - replace with actual data fetching
 // Added foodCourtId, foodCourtName, and imageUrl to menu items
@@ -86,6 +88,7 @@ const Menu: React.FC<MenuProps> = ({ foodCourtId }) => {
   const [foodCourtName, setFoodCourtName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const { addToCart } = useCart(); // Get addToCart function from context
+  const gridRef = useRef<HTMLDivElement>(null); // Ref for the grid container
 
   useEffect(() => {
     setIsLoading(true);
@@ -109,6 +112,31 @@ const Menu: React.FC<MenuProps> = ({ foodCourtId }) => {
     }
   }, [foodCourtId]);
 
+  // GSAP Stagger Animation Effect for Menu Items
+  useEffect(() => {
+    if (!isLoading && gridRef.current && menuItems.length > 0) {
+      const cards = gridRef.current.querySelectorAll('.menu-item-card');
+       // GSAP Context for cleanup
+      const ctx = gsap.context(() => {
+         // Initial state (hidden and slightly scaled down)
+         gsap.set(cards, { autoAlpha: 0, scale: 0.95, y: 10 });
+
+         // Stagger animation
+         gsap.to(cards, {
+           autoAlpha: 1,
+           scale: 1,
+           y: 0,
+           duration: 0.4,
+           stagger: 0.08, // Stagger the animation for each card
+           ease: "power2.out",
+           delay: 0.1 // Small delay after loading
+         });
+      }, gridRef); // Scope context to the grid
+
+       return () => ctx.revert(); // Cleanup GSAP animations on unmount or when menu items change
+    }
+  }, [isLoading, menuItems]); // Re-run animation when loading finishes or menuItems change
+
   const handleAddToCart = (item: MenuItem) => {
     addToCart(item); // Use context function to add item (imageUrl is already part of item)
   };
@@ -124,9 +152,12 @@ const Menu: React.FC<MenuProps> = ({ foodCourtId }) => {
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-bold mb-4 text-center md:text-left">Menu for {foodCourtName}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"> {/* Increased gap */}
+      <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"> {/* Increased gap */}
         {menuItems.map((item) => (
-          <Card key={item.id} className="flex flex-col hover:shadow-lg transition-shadow duration-200 overflow-hidden">
+          <Card
+            key={item.id}
+            className="menu-item-card flex flex-col hover:shadow-lg transition-shadow duration-200 overflow-hidden invisible" // Add class and start invisible
+            >
             {/* Add Image component here */}
             {item.imageUrl && (
               <div className="relative w-full h-40"> {/* Fixed height for image container */}
@@ -163,3 +194,4 @@ const Menu: React.FC<MenuProps> = ({ foodCourtId }) => {
 };
 
 export default Menu;
+
