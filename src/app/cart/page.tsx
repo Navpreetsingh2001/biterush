@@ -1,22 +1,35 @@
+
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Minus, Plus, Trash2, QrCode, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { Minus, Plus, Trash2, QrCode, ShoppingBag, ArrowLeft, Clock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { generateGPayQRCode } from '@/services/gpay'; // Ensure this path is correct
+
+// Helper function to estimate delivery time
+const estimateDeliveryTime = (itemCount: number): number => {
+  // Simple estimation: 15 minutes base + 2 minutes per item
+  if (itemCount === 0) return 0;
+  return 15 + itemCount * 2;
+};
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
   const [gpayQRCode, setGPayQRCode] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const estimatedTime = useMemo(() => estimateDeliveryTime(totalItems), [totalItems]);
 
   useEffect(() => {
     setIsClient(true); // Component has mounted on the client
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return; // Don't run QR generation on server
 
     const generateQRCode = async () => {
       if (totalPrice > 0) {
@@ -36,7 +49,7 @@ export default function CartPage() {
     };
 
     generateQRCode();
-  }, [totalPrice]); // Depend on totalPrice to regenerate QR code
+  }, [totalPrice, isClient]); // Depend on totalPrice and isClient
 
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
     const quantity = Math.max(0, newQuantity); // Ensure quantity doesn't go below 0
@@ -67,7 +80,7 @@ export default function CartPage() {
       </Link>
 
       <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
-         <ShoppingBag /> Your Cart ({totalItems} items)
+         <ShoppingBag /> Your Order ({totalItems} items)
       </h1>
 
       {cartItems.length === 0 ? (
@@ -89,13 +102,13 @@ export default function CartPage() {
                 </CardHeader>
                 <CardContent className="divide-y">
                   {group.items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between py-4">
-                      <div className="flex-1 mr-4">
+                    <div key={item.id} className="flex items-center justify-between py-4 flex-wrap">
+                      <div className="flex-1 min-w-[150px] mr-4 mb-2 sm:mb-0">
                         <p className="font-medium">{item.name}</p>
                         <p className="text-sm text-muted-foreground">{item.description}</p>
                         <p className="text-sm font-semibold">${item.price.toFixed(2)}</p>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 mb-2 sm:mb-0">
                         <Button
                           variant="outline"
                           size="icon"
@@ -111,6 +124,7 @@ export default function CartPage() {
                           value={item.quantity}
                           onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value, 10) || 1)}
                           className="h-8 w-12 text-center px-1"
+                          aria-label={`Quantity for ${item.name}`}
                         />
                         <Button
                           variant="outline"
@@ -125,12 +139,12 @@ export default function CartPage() {
                           size="icon"
                           className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={() => removeFromCart(item.id)}
-                          aria-label="Remove item"
+                          aria-label={`Remove ${item.name}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                      <div className="w-20 text-right font-semibold">
+                      <div className="w-full sm:w-20 text-right font-semibold mt-2 sm:mt-0">
                         ${(item.price * item.quantity).toFixed(2)}
                       </div>
                     </div>
@@ -153,6 +167,11 @@ export default function CartPage() {
                   <span>Subtotal ({totalItems} items)</span>
                   <span>${totalPrice.toFixed(2)}</span>
                 </div>
+                 {/* Estimated Delivery Time */}
+                 <div className="flex justify-between items-center text-sm text-muted-foreground border-t pt-4">
+                    <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> Est. Delivery Time</span>
+                    <span>~ {estimatedTime} minutes</span>
+                 </div>
                 {/* Add more details like taxes or fees if needed */}
                 <div className="flex justify-between font-bold text-lg border-t pt-4">
                   <span>Total</span>
@@ -172,11 +191,12 @@ export default function CartPage() {
                      <div className="text-center text-muted-foreground pt-4">Generating QR Code...</div>
                  )}
               </CardContent>
-              <CardFooter>
-                <Button className="w-full" disabled={!gpayQRCode || cartItems.length === 0}>
-                  Proceed to Payment (Scan QR)
-                </Button>
-              </CardFooter>
+               {/* Footer might not need a button if QR is the only payment method */}
+               {/* <CardFooter>
+                 <Button className="w-full" disabled={!gpayQRCode || cartItems.length === 0}>
+                   Confirm Order (Scan QR Above)
+                 </Button>
+               </CardFooter> */}
             </Card>
           </div>
         </div>
@@ -184,3 +204,4 @@ export default function CartPage() {
     </div>
   );
 }
+
