@@ -61,7 +61,7 @@ export default function CartPage() {
           setGPayQRCode(qrCodeUrl);
           // Simulate payment completion when QR code is ready
           setPaymentCompletedAt(new Date());
-          setCanCancel(true);
+          setCanCancel(true); // Enable cancellation window upon QR generation (simulated payment)
           setCancellationExpired(false);
           setTimeLeft(CANCELLATION_WINDOW_MINUTES * 60); // Reset timer
           console.log("QR Code generated, payment considered completed at:", new Date());
@@ -88,8 +88,7 @@ export default function CartPage() {
       }
     };
 
-    // Only generate QR if cart is not empty and QR not already generated
-    // AND delivery location is set
+    // Only generate QR if cart is not empty, QR not already generated, AND delivery location is set
     if (cartItems.length > 0 && !gpayQRCode && deliveryLocation) {
        generateQRCode();
     } else if (cartItems.length === 0) {
@@ -105,8 +104,9 @@ export default function CartPage() {
 
   // Cancellation Timer Effect
   useEffect(() => {
+     // Run only if payment is marked complete and cancellation is currently allowed
      if (!isClient || !paymentCompletedAt || !canCancel) {
-      return; // Don't run timer if not client, payment not done, or already cancelled/expired
+      return;
     }
 
     const deadline = paymentCompletedAt.getTime() + CANCELLATION_WINDOW_MINUTES * 60 * 1000;
@@ -117,13 +117,12 @@ export default function CartPage() {
       const now = Date.now();
       const remaining = Math.max(0, Math.round((deadline - now) / 1000));
       setTimeLeft(remaining);
-      // console.log("Time left:", remaining);
 
 
       if (now > deadline) {
         console.log("Cancellation window expired.");
-        setCanCancel(false);
-        setCancellationExpired(true);
+        setCanCancel(false); // Disable cancellation
+        setCancellationExpired(true); // Mark as expired
         clearInterval(timerInterval);
         toast({
              title: "Cancellation Window Closed",
@@ -197,7 +196,7 @@ export default function CartPage() {
           variant: "destructive",
         });
      }
-   }, [canCancel, cancellationExpired, clearCart, toast, router]);
+   }, [canCancel, cancellationExpired, clearCart, toast, router]); // Dependencies for useCallback
 
    // Handle saving the delivery location
     const handleSaveLocation = () => {
@@ -465,7 +464,7 @@ export default function CartPage() {
                 </div>
 
                 {/* Payment / QR Code Section */}
-                {!paymentCompletedAt && gpayQRCode && deliveryLocation && ( // Only show QR if location is set
+                {!paymentCompletedAt && gpayQRCode && deliveryLocation && ( // Only show QR if location is set and payment not "completed" yet
                   <div className="mt-6 text-center border-t pt-6">
                     <p className="text-muted-foreground mb-3 flex items-center justify-center gap-1">
                       <QrCode className="h-5 w-5"/> Scan with GPay to Complete Payment
@@ -475,10 +474,10 @@ export default function CartPage() {
                     </div>
                   </div>
                 )}
-                {!gpayQRCode && totalPrice > 0 && !paymentCompletedAt && deliveryLocation && ( // Show generating only if location set
+                {!paymentCompletedAt && !gpayQRCode && totalPrice > 0 && deliveryLocation && ( // Show generating only if location set, price > 0, and payment not "completed"
                      <div className="text-center text-muted-foreground pt-4">Generating QR Code...</div>
                  )}
-                 {!deliveryLocation && cartItems.length > 0 && !paymentCompletedAt && ( // Prompt to set location if needed
+                 {!deliveryLocation && cartItems.length > 0 && !paymentCompletedAt && ( // Prompt to set location if needed and payment not "completed"
                       <Alert variant="destructive" className="mt-4">
                          <AlertTitle>Set Delivery Location</AlertTitle>
                          <AlertDescription>
@@ -489,7 +488,7 @@ export default function CartPage() {
 
 
                  {/* Order Confirmation & Cancellation Section */}
-                {paymentCompletedAt && (
+                {paymentCompletedAt && ( // This block shows *after* payment is simulated (QR generated)
                   <div className="mt-6 border-t pt-6 space-y-4">
                      <Alert variant="default" className="bg-green-50 border-green-300">
                          <CheckCircle className="h-5 w-5 text-green-600" />
@@ -499,7 +498,7 @@ export default function CartPage() {
                        </AlertDescription>
                      </Alert>
 
-                     {/* Cancellation Window */}
+                     {/* Cancellation Window: Show only if canCancel is true */}
                      {canCancel && (
                         <div className="text-center space-y-2">
                             <p className="text-sm text-muted-foreground">
@@ -511,7 +510,7 @@ export default function CartPage() {
                         </div>
                      )}
 
-                     {/* Cancellation Expired Message */}
+                     {/* Cancellation Expired Message: Show only if cancellationExpired is true */}
                       {cancellationExpired && (
                         <Alert variant="destructive">
                            <Ban className="h-5 w-5" />
@@ -522,7 +521,7 @@ export default function CartPage() {
                          </Alert>
                       )}
 
-                     {/* Refund Policy Info */}
+                      {/* Refund Policy Info: Always show after payment is confirmed */}
                       <Alert variant="default" className="bg-blue-50 border-blue-300">
                         <Info className="h-5 w-5 text-blue-600" />
                         <AlertTitle className="text-blue-700">Refund Policy</AlertTitle>
@@ -545,3 +544,5 @@ export default function CartPage() {
     </div>
   );
 }
+
+    
