@@ -22,9 +22,9 @@ export default function Home() {
   return (
     <> {/* Use Fragment instead of div */}
       <Hero /> {/* Add the Hero section here */}
-      <h1 className="text-3xl font-bold mb-6 text-center md:text-left text-primary">Order Food on Campus</h1>
       {/* Add id="block-selection" to this div */}
       <div id="block-selection">
+         <h1 className="text-3xl font-bold mb-6 text-center md:text-left text-primary">Order Food on Campus</h1>
         <BlockSelection
           selectedBlock={selectedBlock} // Pass selected block state
           onBlockSelect={(block) => {
