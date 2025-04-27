@@ -1,7 +1,7 @@
 
 import type { Metadata } from 'next';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
+// import { GeistSans } from 'geist/font/sans'; // Removed GeistSans import
+// import { GeistMono } from 'geist/font/mono'; // Removed GeistMono import
 import './globals.css';
 import Header from '@/components/Header'; // Import Header
 import Footer from '@/components/Footer'; // Corrected import path
@@ -19,7 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} h-full`}>
+    // Removed GeistSans.variable and GeistMono.variable from className
+    <html lang="en" className="h-full">
       <body className="antialiased flex flex-col min-h-screen">
         <CartProvider> {/* Wrap everything with CartProvider */}
           <Header /> {/* Add Header */}

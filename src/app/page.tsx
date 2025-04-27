@@ -2,7 +2,7 @@
 "use client";
 
 import type { FC } from 'react';
-import BlockSelection from '@/components/BlockSelection';
+import BlockSelection from '@/components/BlockSelection'; // Corrected import path if necessary
 import FoodCourtList from '@/components/FoodCourtList';
 import Hero from '@/components/Hero'; // Import the new Hero component
 import { useState, useRef, useEffect } from 'react';
