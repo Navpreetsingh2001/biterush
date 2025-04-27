@@ -4,6 +4,7 @@ import './globals.css';
 import Header from '@/components/Header'; // Import Header
 import Footer from '@/components/Footer'; // Import Footer
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster
+import { CartProvider } from '@/context/CartContext'; // Import CartProvider
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -30,12 +31,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
-        <Header /> {/* Add Header */}
-        <main className="flex-grow container mx-auto px-4 py-8"> {/* Add padding to main content */}
-          {children}
-        </main>
-        <Toaster /> {/* Add Toaster for notifications */}
-        <Footer /> {/* Add Footer */}
+        <CartProvider> {/* Wrap everything with CartProvider */}
+          <Header /> {/* Add Header */}
+          <main className="flex-grow container mx-auto px-4 py-8"> {/* Add padding to main content */}
+            {children}
+          </main>
+          <Toaster /> {/* Add Toaster for notifications */}
+          <Footer /> {/* Add Footer */}
+        </CartProvider>
       </body>
     </html>
   );
