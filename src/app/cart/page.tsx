@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Minus, Plus, Trash2, QrCode, ShoppingBag, ArrowLeft, Clock, Ban, Info, CheckCircle } from 'lucide-react';
+import { Label } from "@/components/ui/label"; // Import Label
+import { Minus, Plus, Trash2, QrCode, ShoppingBag, ArrowLeft, Clock, Ban, Info, CheckCircle, MapPin, LocateFixed } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { generateGPayQRCode } from '@/services/gpay'; // Ensure this path is correct
@@ -24,7 +25,7 @@ const estimateDeliveryTime = (itemCount: number): number => {
 const CANCELLATION_WINDOW_MINUTES = 2;
 
 export default function CartPage() {
-  const { cartItems, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice, deliveryLocation, setDeliveryLocation } = useCart();
   const { toast } = useToast();
   const router = useRouter();
   const [gpayQRCode, setGPayQRCode] = useState<string | null>(null);
@@ -33,13 +34,19 @@ export default function CartPage() {
   const [canCancel, setCanCancel] = useState<boolean>(false);
   const [cancellationExpired, setCancellationExpired] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(CANCELLATION_WINDOW_MINUTES * 60); // Time left in seconds
+  const [locationInput, setLocationInput] = useState<string>(''); // State for location input
+  const [isLocating, setIsLocating] = useState(false); // State for geolocation loading
 
   const estimatedTime = useMemo(() => estimateDeliveryTime(totalItems), [totalItems]);
 
   // Ensure component is mounted on client before proceeding
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    // Initialize location input with context value if available
+    if (deliveryLocation) {
+        setLocationInput(deliveryLocation);
+    }
+  }, [deliveryLocation]); // Add deliveryLocation dependency
 
   // Generate QR Code Effect
   useEffect(() => {
@@ -82,7 +89,8 @@ export default function CartPage() {
     };
 
     // Only generate QR if cart is not empty and QR not already generated
-    if (cartItems.length > 0 && !gpayQRCode) {
+    // AND delivery location is set
+    if (cartItems.length > 0 && !gpayQRCode && deliveryLocation) {
        generateQRCode();
     } else if (cartItems.length === 0) {
         // Reset everything if cart becomes empty before payment
@@ -92,7 +100,7 @@ export default function CartPage() {
         setCancellationExpired(false);
     }
 
-  }, [totalPrice, isClient, cartItems.length, gpayQRCode, paymentCompletedAt, toast]); // Added dependencies
+  }, [totalPrice, isClient, cartItems.length, gpayQRCode, paymentCompletedAt, toast, deliveryLocation]); // Added deliveryLocation
 
 
   // Cancellation Timer Effect
@@ -155,7 +163,8 @@ export default function CartPage() {
         toast({ title: "Order Finalized", description: "Cannot clear cart after payment.", variant: "destructive"});
         return;
      }
-     clearCart();
+     clearCart(); // This now also clears the location in context
+     setLocationInput(''); // Clear local input state as well
      setGPayQRCode(null);
      setPaymentCompletedAt(null);
      setCanCancel(false);
@@ -166,7 +175,8 @@ export default function CartPage() {
    const handleCancelOrder = useCallback(() => {
      if (canCancel) {
        console.log("Cancelling order...");
-       clearCart(); // Clear items from cart context
+       clearCart(); // Clear items and location from cart context
+       setLocationInput(''); // Clear local input state
        setGPayQRCode(null); // Remove QR code
        setPaymentCompletedAt(null); // Reset payment timestamp
        setCanCancel(false); // Disable further cancellation attempts
@@ -188,6 +198,55 @@ export default function CartPage() {
         });
      }
    }, [canCancel, cancellationExpired, clearCart, toast, router]);
+
+   // Handle saving the delivery location
+    const handleSaveLocation = () => {
+        if (paymentCompletedAt) {
+            toast({ title: "Order Finalized", description: "Cannot change location after payment.", variant: "destructive"});
+            return;
+        }
+        setDeliveryLocation(locationInput.trim()); // Update location in context
+    };
+
+    // Handle getting current location using Geolocation API
+    const handleGetCurrentLocation = () => {
+        if (paymentCompletedAt) {
+             toast({ title: "Order Finalized", description: "Cannot change location after payment.", variant: "destructive"});
+             return;
+        }
+        if (!navigator.geolocation) {
+            toast({ title: "Geolocation Not Supported", description: "Your browser does not support geolocation.", variant: "destructive" });
+            return;
+        }
+
+        setIsLocating(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                // You might want to use a reverse geocoding service here
+                // to get a human-readable address from lat/lon.
+                // For simplicity, we'll just use the coordinates for now.
+                const locationString = `Lat: ${position.coords.latitude.toFixed(4)}, Lon: ${position.coords.longitude.toFixed(4)}`;
+                setLocationInput(locationString);
+                setDeliveryLocation(locationString); // Update context
+                setIsLocating(false);
+                toast({ title: "Location Fetched", description: "Current location coordinates set." });
+            },
+            (error) => {
+                setIsLocating(false);
+                console.error("Error getting location:", error);
+                let message = "Failed to get current location.";
+                 if (error.code === error.PERMISSION_DENIED) {
+                     message = "Geolocation permission denied. Please enable it in your browser settings.";
+                 } else if (error.code === error.POSITION_UNAVAILABLE) {
+                    message = "Location information is unavailable.";
+                 } else if (error.code === error.TIMEOUT) {
+                    message = "The request to get user location timed out.";
+                 }
+                toast({ title: "Location Error", description: message, variant: "destructive" });
+            },
+            { timeout: 10000 } // Set a timeout for the request
+        );
+    };
 
 
   // Group items by food court
@@ -331,6 +390,43 @@ export default function CartPage() {
                 <CardTitle className="text-xl">Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                 {/* Delivery Location Input */}
+                 {!paymentCompletedAt && (
+                     <div className="space-y-2">
+                        <Label htmlFor="deliveryLocation" className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4" /> Delivery Location
+                        </Label>
+                        <div className="flex gap-2">
+                            <Input
+                                id="deliveryLocation"
+                                placeholder="E.g., Library Room 201, Block C Entrance"
+                                value={locationInput}
+                                onChange={(e) => setLocationInput(e.target.value)}
+                                className="flex-grow"
+                                disabled={!!paymentCompletedAt || isLocating} // Disable if locating
+                            />
+                            <Button size="icon" variant="outline" onClick={handleGetCurrentLocation} disabled={!!paymentCompletedAt || isLocating} title="Use Current Location">
+                                <LocateFixed className={`h-4 w-4 ${isLocating ? 'animate-spin' : ''}`} />
+                            </Button>
+                        </div>
+                        <Button onClick={handleSaveLocation} className="w-full" disabled={!locationInput.trim() || paymentCompletedAt || isLocating}>
+                            Set Location
+                        </Button>
+                        {!deliveryLocation && cartItems.length > 0 && (
+                             <p className="text-xs text-destructive text-center">Please set a delivery location to proceed to payment.</p>
+                        )}
+                     </div>
+                 )}
+
+                 {/* Display Saved/Current Delivery Location */}
+                 {deliveryLocation && (
+                     <div className="flex justify-between items-center text-sm text-muted-foreground border-t pt-4">
+                         <span className="flex items-center gap-1"><MapPin className="h-4 w-4 text-primary" /> Delivering To</span>
+                         <span className="font-medium text-right">{deliveryLocation}</span>
+                     </div>
+                 )}
+
+
                 <div className="flex justify-between">
                   <span>Subtotal ({totalItems} items)</span>
                   <span>${totalPrice.toFixed(2)}</span>
@@ -347,7 +443,7 @@ export default function CartPage() {
                 </div>
 
                 {/* Payment / QR Code Section */}
-                {!paymentCompletedAt && gpayQRCode && (
+                {!paymentCompletedAt && gpayQRCode && deliveryLocation && ( // Only show QR if location is set
                   <div className="mt-6 text-center border-t pt-6">
                     <p className="text-muted-foreground mb-3 flex items-center justify-center gap-1">
                       <QrCode className="h-5 w-5"/> Scan with GPay to Complete Payment
@@ -355,20 +451,18 @@ export default function CartPage() {
                     <div className="flex justify-center bg-white p-2 rounded-md">
                       <Image src={gpayQRCode} alt="GPay QR Code" width={200} height={200} priority />
                     </div>
-                     {/* Simulate payment completion button (for dev/testing) */}
-                     {/* <Button className="mt-4" onClick={() => {
-                        setPaymentCompletedAt(new Date());
-                        setCanCancel(true);
-                        setCancellationExpired(false);
-                        setTimeLeft(CANCELLATION_WINDOW_MINUTES * 60);
-                        toast({ title: "Payment Simulated", description: "Order is now considered paid."});
-                     }}>
-                        Simulate Payment
-                    </Button> */}
                   </div>
                 )}
-                {!gpayQRCode && totalPrice > 0 && !paymentCompletedAt && (
+                {!gpayQRCode && totalPrice > 0 && !paymentCompletedAt && deliveryLocation && ( // Show generating only if location set
                      <div className="text-center text-muted-foreground pt-4">Generating QR Code...</div>
+                 )}
+                 {!deliveryLocation && cartItems.length > 0 && !paymentCompletedAt && ( // Prompt to set location if needed
+                      <Alert variant="destructive" className="mt-4">
+                         <AlertTitle>Set Delivery Location</AlertTitle>
+                         <AlertDescription>
+                            Please enter and save your delivery location above before payment.
+                         </AlertDescription>
+                       </Alert>
                  )}
 
 
@@ -379,7 +473,7 @@ export default function CartPage() {
                          <CheckCircle className="h-5 w-5 text-green-600" />
                        <AlertTitle className="text-green-700">Payment Received!</AlertTitle>
                        <AlertDescription className="text-green-600">
-                         Your order is being prepared. Estimated delivery in ~{estimatedTime} minutes.
+                         Your order is being prepared. Estimated delivery to <strong>{deliveryLocation || 'your location'}</strong> in ~{estimatedTime} minutes.
                        </AlertDescription>
                      </Alert>
 
@@ -429,6 +523,3 @@ export default function CartPage() {
     </div>
   );
 }
-
-
-    

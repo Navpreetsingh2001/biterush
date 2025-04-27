@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
@@ -12,6 +13,8 @@ interface CartContextType {
   clearCart: () => void; // Add function to clear cart
   totalItems: number;
   totalPrice: number;
+  deliveryLocation: string | null; // Add state for delivery location
+  setDeliveryLocation: (location: string) => void; // Add setter for delivery location
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -20,9 +23,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [deliveryLocation, setDeliveryLocationState] = useState<string | null>(null); // Internal state for location
   const { toast } = useToast(); // Initialize toast
 
-  // Load cart from localStorage on initial render (client-side only)
+  // Load cart and location from localStorage on initial render (client-side only)
   useEffect(() => {
     const storedCart = localStorage.getItem('campusGrubCart');
     if (storedCart) {
@@ -36,9 +40,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
          localStorage.removeItem('campusGrubCart'); // Clear invalid data
       }
     }
+
+    const storedLocation = localStorage.getItem('campusGrubLocation');
+    if (storedLocation) {
+        setDeliveryLocationState(storedLocation);
+    }
   }, []);
 
-  // Update totals and save to localStorage whenever cartItems changes
+  // Update totals and save cart to localStorage whenever cartItems changes
   useEffect(() => {
     const newTotalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const newTotalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -50,6 +59,18 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.setItem('campusGrubCart', JSON.stringify(cartItems));
     }
   }, [cartItems]);
+
+   // Save location to localStorage whenever deliveryLocation changes
+   useEffect(() => {
+    if (typeof window !== 'undefined') {
+        if (deliveryLocation) {
+            localStorage.setItem('campusGrubLocation', deliveryLocation);
+        } else {
+            localStorage.removeItem('campusGrubLocation'); // Remove if null
+        }
+    }
+  }, [deliveryLocation]);
+
 
   const addToCart = (itemToAdd: MenuItem) => {
     setCartItems(prevItems => {
@@ -99,15 +120,33 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const clearCart = () => {
         setCartItems([]);
+        setDeliveryLocationState(null); // Clear location when cart is cleared
         toast({
             title: "Cart Cleared",
             description: "Your cart has been emptied.",
         });
     };
 
+  const setDeliveryLocation = (location: string) => {
+      if(location.trim() === "") {
+           setDeliveryLocationState(null);
+            toast({
+                title: "Location Cleared",
+                description: "Delivery location removed.",
+                variant: "destructive",
+            });
+           return;
+      }
+      setDeliveryLocationState(location);
+      toast({
+            title: "Location Updated",
+            description: `Delivery location set to: ${location}`,
+        });
+  };
+
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice }}>
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice, deliveryLocation, setDeliveryLocation }}>
       {children}
     </CartContext.Provider>
   );
