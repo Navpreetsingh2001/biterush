@@ -83,7 +83,8 @@ const BlockSelection: FC<BlockSelectionProps> = ({ onBlockSelect, selectedBlock 
                   fill
                   sizes="(max-width: 640px) 50vw, 25vw" // Responsive image sizes
                   className="object-cover"
-                  priority={index < 4} // Prioritize loading images for the first few blocks
+                  priority={index < 4} // Prioritize loading images for the first few blocks (LCP)
+                  loading={index < 4 ? 'eager' : 'lazy'} // Load first few eagerly, others lazily
                 />
               </div>
             </CardContent>
@@ -98,3 +99,4 @@ const BlockSelection: FC<BlockSelectionProps> = ({ onBlockSelect, selectedBlock 
 };
 
 export default BlockSelection;
+

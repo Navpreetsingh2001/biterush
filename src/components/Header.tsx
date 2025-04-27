@@ -6,9 +6,13 @@ import Link from 'next/link';
 import { Utensils, ShoppingCart, Info } from 'lucide-react'; // Added Info icon
 import { useCart } from '@/context/CartContext'; // Import useCart
 import { Badge } from "@/components/ui/badge"; // Import Badge
+import { useMemo } from 'react'; // Import useMemo
 
 const Header: FC = () => {
-  const { totalItems } = useCart(); // Get totalItems from CartContext
+  const { totalItems: rawTotalItems } = useCart(); // Get totalItems from CartContext
+
+  // Memoize totalItems to avoid recalculating unless it actually changes
+  const totalItems = useMemo(() => rawTotalItems, [rawTotalItems]);
 
   return (
     <header className="bg-primary text-primary-foreground shadow-md sticky top-0 z-50"> {/* Make header sticky */}

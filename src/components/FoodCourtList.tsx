@@ -4,12 +4,13 @@
 import type { FC } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building } from "lucide-react"; // Using a generic icon for food courts
+import { Building, Loader2 } from "lucide-react"; // Added Loader2
 import { useRouter } from 'next/navigation'; // Import useRouter
 import { useEffect, useRef } from 'react'; // Import useEffect and useRef
 import { gsap } from 'gsap'; // Import GSAP
 
-interface FoodCourt {
+// Export the type so it can be used in the parent component
+export interface FoodCourt {
   id: string;
   name: string;
   description: string;
@@ -17,42 +18,27 @@ interface FoodCourt {
 
 interface FoodCourtListProps {
   block: string;
+  foodCourts: FoodCourt[]; // Accept food courts as props
+  isLoading: boolean; // Accept loading state as props
 }
 
-const FoodCourtList: FC<FoodCourtListProps> = ({ block }) => {
+const FoodCourtList: FC<FoodCourtListProps> = ({ block, foodCourts, isLoading }) => {
   const router = useRouter(); // Initialize router
   const containerRef = useRef<HTMLDivElement>(null); // Ref for the container div
 
-  // Mock data - replace with actual data fetching later
-  const foodCourts: Record<string, FoodCourt[]> = {
-    "Block A": [
-      { id: "fc1a", name: "The Hungry Ram", description: "Quick bites and snacks" },
-      { id: "fc2a", name: "Green Leaf Cafe", description: "Salads and healthy options" }
-    ],
-    "Block B": [
-      { id: "fc1b", name: "Pizza Point", description: "Classic pizzas and sides" },
-      { id: "fc2b", name: "Curry Corner", description: "Authentic Indian cuisine" }
-    ],
-    "Block C": [
-      { id: "fc1c", name: "Burger Hub", description: "Gourmet burgers and fries" },
-      { id: "fc2c", name: "Noodle Bar", description: "Asian stir-fries and soups" }
-    ],
-    "Block D": [
-      { id: "fc1d", name: "Sub Station", description: "Customizable sandwiches" },
-      { id: "fc2d", name: "Coffee Stop", description: "Coffee, pastries, and light meals" }
-    ],
-  };
-
-  const foodCourtsInBlock = foodCourts[block] || [];
+  // Mock data is now fetched in the parent component (Home)
 
   // GSAP Stagger Animation Effect
   useEffect(() => {
-    if (containerRef.current && foodCourtsInBlock.length > 0) {
+     // Run animation only when not loading and food courts are available
+    if (!isLoading && containerRef.current && foodCourts.length > 0) {
       const cards = containerRef.current.querySelectorAll<HTMLDivElement>('.food-court-card');
        // GSAP Context for cleanup
       const ctx = gsap.context(() => {
          // Initial state (hidden and slightly down)
-         gsap.set(cards, { autoAlpha: 0, y: 30 });
+         // Important: Ensure elements are visible before animation if previously hidden
+         gsap.set(cards, { autoAlpha: 0, y: 30, visibility: 'visible' });
+
 
          // Stagger animation
          gsap.to(cards, {
@@ -62,13 +48,17 @@ const FoodCourtList: FC<FoodCourtListProps> = ({ block }) => {
            stagger: 0.1, // Stagger the animation for each card
            ease: "power3.out",
            // Delay slightly to ensure elements are ready and visible
-           delay: 0.2
+           delay: 0.1 // Reduced delay as data fetching delay is separate
          });
       }, containerRef); // Scope context to the container
 
        return () => ctx.revert(); // Cleanup GSAP animations on unmount or block change
+    } else if (containerRef.current) {
+        // If loading or no items, ensure cards are hidden to avoid flash of unstyled content
+         const cards = containerRef.current.querySelectorAll<HTMLDivElement>('.food-court-card');
+         gsap.set(cards, { visibility: 'hidden' }); // Use visibility instead of autoAlpha to prevent layout shifts
     }
-  }, [block, foodCourtsInBlock.length]); // Re-run animation when block changes
+  }, [block, foodCourts, isLoading]); // Re-run animation when block, foodCourts, or isLoading changes
 
 
   // Function to handle navigation
@@ -77,14 +67,20 @@ const FoodCourtList: FC<FoodCourtListProps> = ({ block }) => {
   };
 
   return (
-    <div ref={containerRef} className="mb-8"> {/* Add ref to the container */}
+    <div ref={containerRef} className="mb-8 min-h-[200px] relative"> {/* Add min-height and relative positioning */}
       <h2 className="text-xl font-semibold mb-4 text-center md:text-left">Food Courts in {block}</h2>
-      {foodCourtsInBlock.length > 0 ? (
+      {isLoading ? (
+         <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm z-10">
+             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+             <span className="ml-2">Loading Food Courts...</span>
+         </div>
+      ) : foodCourts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {foodCourtsInBlock.map((foodCourt) => (
+          {foodCourts.map((foodCourt) => (
             <Card
               key={foodCourt.id}
-              className="food-court-card hover:shadow-lg transition-shadow duration-200 flex flex-col invisible" // Add class for GSAP selection and start invisible
+              className="food-court-card hover:shadow-lg transition-shadow duration-200 flex flex-col invisible" // Start invisible for GSAP
+              style={{ visibility: 'hidden' }} // Start hidden, GSAP will make it visible
             >
               <CardHeader className="flex flex-row items-center gap-4 pb-4">
                  <Building className="w-8 h-8 text-primary" />
@@ -102,10 +98,12 @@ const FoodCourtList: FC<FoodCourtListProps> = ({ block }) => {
           ))}
         </div>
       ) : (
-         <p className="text-muted-foreground text-center">No food courts found in this block.</p>
+         <p className="text-muted-foreground text-center py-10">No food courts found in this block.</p>
       )}
     </div>
   );
 };
 
 export default FoodCourtList;
+// Export the type again at the bottom for clarity (optional, but good practice)
+export type { FoodCourt };

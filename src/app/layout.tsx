@@ -21,7 +21,15 @@ export default function RootLayout({
   return (
     // Removed GeistSans.variable and GeistMono.variable from className
     <html lang="en" className="h-full">
-      <body className="antialiased flex flex-col min-h-screen">
+       <head>
+         {/* Preconnect to external domains used for critical resources */}
+         <link rel="preconnect" href="https://picsum.photos" />
+         <link rel="preconnect" href="https://api.qrserver.com" />
+         {/* Add preconnect for font providers if used (e.g., Google Fonts) */}
+         {/* <link rel="preconnect" href="https://fonts.googleapis.com" /> */}
+         {/* <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" /> */}
+       </head>
+      <body className="antialiased flex flex-col min-h-screen bg-background text-foreground"> {/* Ensure base styles are applied */}
         <CartProvider> {/* Wrap everything with CartProvider */}
           <Header /> {/* Add Header */}
           <main className="flex-grow container mx-auto px-4 py-8"> {/* Add padding to main content */}

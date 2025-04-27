@@ -6,20 +6,80 @@ import BlockSelection from '@/components/BlockSelection'; // Corrected import pa
 import FoodCourtList from '@/components/FoodCourtList';
 import Hero from '@/components/Hero'; // Import the new Hero component
 import { useState, useRef, useEffect } from 'react';
+import type { FoodCourt } from '@/components/FoodCourtList'; // Import type
+
+// Mock data fetching function (simulates server-side fetching)
+// In a real app, this would fetch from an API or database
+const fetchFoodCourtsForBlock = async (blockId: string): Promise<FoodCourt[]> => {
+  // Mock data - same as in FoodCourtList.tsx
+  const allFoodCourts: Record<string, FoodCourt[]> = {
+    "Block A": [
+      { id: "fc1a", name: "The Hungry Ram", description: "Quick bites and snacks" },
+      { id: "fc2a", name: "Green Leaf Cafe", description: "Salads and healthy options" }
+    ],
+    "Block B": [
+      { id: "fc1b", name: "Pizza Point", description: "Classic pizzas and sides" },
+      { id: "fc2b", name: "Curry Corner", description: "Authentic Indian cuisine" }
+    ],
+    "Block C": [
+      { id: "fc1c", name: "Burger Hub", description: "Gourmet burgers and fries" },
+      { id: "fc2c", name: "Noodle Bar", description: "Asian stir-fries and soups" }
+    ],
+    "Block D": [
+      { id: "fc1d", name: "Sub Station", description: "Customizable sandwiches" },
+      { id: "fc2d", name: "Coffee Stop", description: "Coffee, pastries, and light meals" }
+    ],
+  };
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 100)); // Simulate 100ms delay
+  return allFoodCourts[blockId] || [];
+};
+
 
 const Home: FC = () => {
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
+  const [foodCourts, setFoodCourts] = useState<FoodCourt[]>([]);
+  const [isLoadingFoodCourts, setIsLoadingFoodCourts] = useState<boolean>(false);
   const foodCourtListRef = useRef<HTMLDivElement>(null); // Ref for the food court list section
 
-  // Scroll to the food court list when a block is selected
+  // Effect to fetch food courts when block changes
   useEffect(() => {
-    if (selectedBlock && foodCourtListRef.current) {
+    if (selectedBlock) {
+      setIsLoadingFoodCourts(true);
+      fetchFoodCourtsForBlock(selectedBlock)
+        .then(data => {
+          setFoodCourts(data);
+          setIsLoadingFoodCourts(false);
+          // Scroll after data is loaded
+          if (foodCourtListRef.current && typeof window !== 'undefined' && !window.location.hash) {
+             foodCourtListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        })
+        .catch(error => {
+          console.error("Failed to fetch food courts:", error);
+          setIsLoadingFoodCourts(false);
+          setFoodCourts([]); // Clear food courts on error
+        });
+    } else {
+      setFoodCourts([]); // Clear if no block selected
+    }
+  }, [selectedBlock]);
+
+
+  // Scroll to the food court list when a block is selected and data is potentially available
+  // This effect handles the scrolling part, separated from data fetching
+  useEffect(() => {
+    if (selectedBlock && foodCourts.length > 0 && foodCourtListRef.current) {
       // Check if the navigation wasn't triggered by the back button with a hash
       if (typeof window !== 'undefined' && !window.location.hash) {
-        foodCourtListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Consider a slight delay if needed for content rendering after state update
+          // setTimeout(() => {
+          //    foodCourtListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // }, 100);
       }
     }
-  }, [selectedBlock]); // Dependency array ensures this runs when selectedBlock changes
+  }, [selectedBlock, foodCourts]); // Depends on block and loaded food courts
+
 
   return (
     <> {/* Use Fragment instead of div */}
@@ -31,15 +91,18 @@ const Home: FC = () => {
           selectedBlock={selectedBlock} // Pass selected block state
           onBlockSelect={(block: string) => {
             setSelectedBlock(block);
-            // No need to reset food court state here anymore
+            // Data fetching and scrolling are handled by useEffect
           }}
         />
       </div>
       {/* Wrap FoodCourtList in a div and attach the ref */}
       <div ref={foodCourtListRef}>
         {selectedBlock && (
-          // FoodCourtList will now handle navigation internally
-          <FoodCourtList block={selectedBlock} />
+          <FoodCourtList
+             block={selectedBlock}
+             foodCourts={foodCourts} // Pass fetched data
+             isLoading={isLoadingFoodCourts} // Pass loading state
+           />
         )}
       </div>
       {/* Removed Menu component rendering from here */}
@@ -48,3 +111,4 @@ const Home: FC = () => {
 }
 
 export default Home;
+
