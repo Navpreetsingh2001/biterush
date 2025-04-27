@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label"; // Import Label
-import { Minus, Plus, Trash2, QrCode, ShoppingBag, ArrowLeft, Clock, Ban, Info, CheckCircle, MapPin, LocateFixed } from 'lucide-react';
+import { Minus, Plus, Trash2, QrCode, ShoppingBag, ArrowLeft, Clock, Ban, Info, CheckCircle, MapPin, LocateFixed, Image as ImageIcon } from 'lucide-react'; // Added ImageIcon
 import Image from 'next/image';
 import Link from 'next/link';
 import { generateGPayQRCode } from '@/services/gpay'; // Ensure this path is correct
@@ -323,13 +323,33 @@ export default function CartPage() {
                 </CardHeader>
                 <CardContent className="divide-y">
                   {group.items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between py-4 flex-wrap">
-                      <div className="flex-1 min-w-[150px] mr-4 mb-2 sm:mb-0">
+                    <div key={item.id} className="flex items-center justify-between py-4 flex-wrap gap-4">
+                      {/* Item Image */}
+                       <div className="flex-shrink-0">
+                         {item.imageUrl ? (
+                           <Image
+                             src={item.imageUrl}
+                             alt={item.name}
+                             width={64}
+                             height={64}
+                             className="rounded-md object-cover aspect-square"
+                           />
+                         ) : (
+                            <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
+                               <ImageIcon className="h-6 w-6" />
+                            </div>
+                         )}
+                       </div>
+
+                      {/* Item Details */}
+                      <div className="flex-1 min-w-[150px]">
                         <p className="font-medium">{item.name}</p>
                         <p className="text-sm text-muted-foreground">{item.description}</p>
                         <p className="text-sm font-semibold">${item.price.toFixed(2)}</p>
                       </div>
-                      <div className="flex items-center space-x-2 mb-2 sm:mb-0">
+
+                      {/* Quantity Controls */}
+                      <div className="flex items-center space-x-2">
                         <Button
                           variant="outline"
                           size="icon"
@@ -369,7 +389,9 @@ export default function CartPage() {
                            <Trash2 className="h-4 w-4" />
                          </Button>
                       </div>
-                      <div className="w-full sm:w-20 text-right font-semibold mt-2 sm:mt-0">
+
+                      {/* Item Total */}
+                      <div className="w-20 text-right font-semibold">
                         ${(item.price * item.quantity).toFixed(2)}
                       </div>
                     </div>

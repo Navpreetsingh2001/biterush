@@ -6,6 +6,7 @@ export interface MenuItem {
   category: string; // e.g., 'Burger', 'Pizza', 'Salad'
   foodCourtId: string; // Add foodCourtId to know where the item is from
   foodCourtName: string; // Add foodCourtName for display in cart
+  imageUrl?: string; // Add optional imageUrl property
 }
 
 // CartItem can extend MenuItem and add quantity
