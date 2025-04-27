@@ -11,7 +11,7 @@ export default function MenuPage() {
   const foodCourtId = params.foodCourtId as string; // Extract foodCourtId
 
   return (
-    <div className="container mx-auto p-4">
+    <> {/* Use Fragment instead of div */}
       {/* Update href to scroll to the block selection section */}
       <Link href="/#block-selection" passHref>
          <Button variant="outline" className="mb-4">
@@ -24,6 +24,6 @@ export default function MenuPage() {
       ) : (
           <p className="text-center text-destructive">Error: Food court ID not found.</p>
       )}
-    </div>
+    </>
   );
 }

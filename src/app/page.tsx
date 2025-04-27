@@ -20,7 +20,7 @@ export default function Home() {
   }, [selectedBlock]); // Dependency array ensures this runs when selectedBlock changes
 
   return (
-    <div className="container mx-auto p-4">
+    <> {/* Use Fragment instead of div */}
       <Hero /> {/* Add the Hero section here */}
       <h1 className="text-3xl font-bold mb-6 text-center md:text-left text-primary">Order Food on Campus</h1>
       {/* Add id="block-selection" to this div */}
@@ -41,6 +41,6 @@ export default function Home() {
         )}
       </div>
       {/* Removed Menu component rendering from here */}
-    </div>
+    </>
   );
 }
