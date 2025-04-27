@@ -9,7 +9,7 @@ import { Toaster } from "@/components/ui/toaster"; // Import Toaster
 import { CartProvider } from '@/context/CartContext'; // Import CartProvider
 
 export const metadata: Metadata = {
-  title: 'Campus Grub',
+  title: 'Biterush', // Updated title
   description: 'Order food at your campus!',
 };
 

@@ -15,7 +15,7 @@ const Header: FC = () => {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold">
           <Utensils className="h-6 w-6" />
-          <span>Campus Grub</span>
+          <span>Biterush</span> {/* Updated text */}
         </Link>
         <nav>
           <Link href="/cart" className="relative flex items-center gap-2 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">

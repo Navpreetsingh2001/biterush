@@ -8,7 +8,7 @@ import { UtensilsCrossed } from "lucide-react";
 import { gsap } from "gsap"; // Import GSAP
 
 const Hero: FC = () => {
-  const fullText = "Welcome to Campus Grub";
+  const fullText = "Welcome to Biterush"; // Updated text
   const [displayedText, setDisplayedText] = useState<string>("");
   const [index, setIndex] = useState<number>(0);
 
