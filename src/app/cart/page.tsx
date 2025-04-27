@@ -383,7 +383,7 @@ const CartPage: FC = () => {
                       <div className="flex-1 min-w-[150px]">
                         <p className="font-medium">{item.name}</p>
                         <p className="text-sm text-muted-foreground">{item.description}</p>
-                        <p className="text-sm font-semibold">${item.price.toFixed(2)}</p>
+                        <p className="text-sm font-semibold">₹{item.price.toFixed(2)}</p> {/* Changed $ to ₹ */}
                       </div>
 
                       {/* Quantity Controls */}
@@ -430,7 +430,7 @@ const CartPage: FC = () => {
 
                       {/* Item Total */}
                       <div className="w-20 text-right font-semibold">
-                        ${(item.price * item.quantity).toFixed(2)}
+                       ₹{(item.price * item.quantity).toFixed(2)} {/* Changed $ to ₹ */}
                       </div>
                     </div>
                   ))}
@@ -515,7 +515,7 @@ const CartPage: FC = () => {
                      <>
                         <div className="flex justify-between">
                           <span>Subtotal ({totalItems} items)</span>
-                          <span>${totalPrice.toFixed(2)}</span>
+                          <span>₹{totalPrice.toFixed(2)}</span> {/* Changed $ to ₹ */}
                         </div>
                          {/* Estimated Delivery Time */}
                          <div className="flex justify-between items-center text-sm text-muted-foreground border-t pt-4">
@@ -525,7 +525,7 @@ const CartPage: FC = () => {
                         {/* Add more details like taxes or fees if needed */}
                         <div className="flex justify-between font-bold text-lg border-t pt-4">
                           <span>Total</span>
-                          <span>${totalPrice.toFixed(2)}</span>
+                          <span>₹{totalPrice.toFixed(2)}</span> {/* Changed $ to ₹ */}
                         </div>
                     </>
                  )}

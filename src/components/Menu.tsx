@@ -14,40 +14,40 @@ import { gsap } from 'gsap'; // Import GSAP
 // Added foodCourtId, foodCourtName, and imageUrl to menu items
 const mockMenus: Record<string, MenuItem[]> = {
   "fc1a": [
-    { id: "1a1", name: "Classic Burger", price: 5.99, description: "Beef patty, lettuce, tomato, cheese", category: "Burger", foodCourtId: "fc1a", foodCourtName: "The Hungry Ram", imageUrl: "https://picsum.photos/seed/burger/300/200" },
-    { id: "1a2", name: "Fries", price: 2.49, description: "Crispy golden fries", category: "Side", foodCourtId: "fc1a", foodCourtName: "The Hungry Ram", imageUrl: "https://picsum.photos/seed/fries/300/200" },
+    { id: "1a1", name: "Classic Burger", price: 150.00, description: "Beef patty, lettuce, tomato, cheese", category: "Burger", foodCourtId: "fc1a", foodCourtName: "The Hungry Ram", imageUrl: "https://picsum.photos/seed/burger/300/200" },
+    { id: "1a2", name: "Fries", price: 70.00, description: "Crispy golden fries", category: "Side", foodCourtId: "fc1a", foodCourtName: "The Hungry Ram", imageUrl: "https://picsum.photos/seed/fries/300/200" },
   ],
   "fc2a": [
-    { id: "2a1", name: "Caesar Salad", price: 6.99, description: "Romaine, croutons, parmesan, caesar dressing", category: "Salad", foodCourtId: "fc2a", foodCourtName: "Green Leaf Cafe", imageUrl: "https://picsum.photos/seed/caesar/300/200" },
-    { id: "2a2", name: "Greek Salad", price: 7.49, description: "Feta, olives, cucumber, tomato", category: "Salad", foodCourtId: "fc2a", foodCourtName: "Green Leaf Cafe", imageUrl: "https://picsum.photos/seed/greek/300/200" },
+    { id: "2a1", name: "Caesar Salad", price: 180.00, description: "Romaine, croutons, parmesan, caesar dressing", category: "Salad", foodCourtId: "fc2a", foodCourtName: "Green Leaf Cafe", imageUrl: "https://picsum.photos/seed/caesar/300/200" },
+    { id: "2a2", name: "Greek Salad", price: 190.00, description: "Feta, olives, cucumber, tomato", category: "Salad", foodCourtId: "fc2a", foodCourtName: "Green Leaf Cafe", imageUrl: "https://picsum.photos/seed/greek/300/200" },
   ],
   "fc1b": [
-    { id: "1b1", name: "Pepperoni Pizza", price: 8.99, description: "Classic pepperoni and cheese", category: "Pizza", foodCourtId: "fc1b", foodCourtName: "Pizza Point", imageUrl: "https://picsum.photos/seed/pepperoni/300/200" },
-    { id: "1b2", name: "Margherita Pizza", price: 7.99, description: "Tomato, mozzarella, basil", category: "Pizza", foodCourtId: "fc1b", foodCourtName: "Pizza Point", imageUrl: "https://picsum.photos/seed/margherita/300/200" },
+    { id: "1b1", name: "Pepperoni Pizza", price: 250.00, description: "Classic pepperoni and cheese", category: "Pizza", foodCourtId: "fc1b", foodCourtName: "Pizza Point", imageUrl: "https://picsum.photos/seed/pepperoni/300/200" },
+    { id: "1b2", name: "Margherita Pizza", price: 220.00, description: "Tomato, mozzarella, basil", category: "Pizza", foodCourtId: "fc1b", foodCourtName: "Pizza Point", imageUrl: "https://picsum.photos/seed/margherita/300/200" },
   ],
    "fc2b": [
-    { id: "2b1", name: "Chicken Tikka Masala", price: 9.99, description: "Creamy tomato curry with chicken", category: "Indian", foodCourtId: "fc2b", foodCourtName: "Curry Corner", imageUrl: "https://picsum.photos/seed/tikka/300/200" },
-    { id: "2b2", name: "Vegetable Samosa", price: 3.99, description: "Fried pastry with savory filling", category: "Indian", foodCourtId: "fc2b", foodCourtName: "Curry Corner", imageUrl: "https://picsum.photos/seed/samosa/300/200" },
+    { id: "2b1", name: "Chicken Tikka Masala", price: 280.00, description: "Creamy tomato curry with chicken", category: "Indian", foodCourtId: "fc2b", foodCourtName: "Curry Corner", imageUrl: "https://picsum.photos/seed/tikka/300/200" },
+    { id: "2b2", name: "Vegetable Samosa (2pcs)", price: 60.00, description: "Fried pastry with savory filling", category: "Indian", foodCourtId: "fc2b", foodCourtName: "Curry Corner", imageUrl: "https://picsum.photos/seed/samosa/300/200" },
   ],
   "fc1c": [
-    { id: "1c1", name: "Cheeseburger", price: 6.49, description: "Juicy beef patty with cheddar", category: "Burger", foodCourtId: "fc1c", foodCourtName: "Burger Hub", imageUrl: "https://picsum.photos/seed/cheeseburger/300/200" },
-    { id: "1c2", name: "Chicken Burger", price: 6.99, description: "Grilled chicken breast sandwich", category: "Burger", foodCourtId: "fc1c", foodCourtName: "Burger Hub", imageUrl: "https://picsum.photos/seed/chickenburger/300/200" },
+    { id: "1c1", name: "Cheeseburger", price: 160.00, description: "Juicy beef patty with cheddar", category: "Burger", foodCourtId: "fc1c", foodCourtName: "Burger Hub", imageUrl: "https://picsum.photos/seed/cheeseburger/300/200" },
+    { id: "1c2", name: "Chicken Burger", price: 170.00, description: "Grilled chicken breast sandwich", category: "Burger", foodCourtId: "fc1c", foodCourtName: "Burger Hub", imageUrl: "https://picsum.photos/seed/chickenburger/300/200" },
   ],
   "fc2c": [
-    { id: "2c1", name: "Pad Thai", price: 8.49, description: "Stir-fried rice noodles", category: "Asian", foodCourtId: "fc2c", foodCourtName: "Noodle Bar", imageUrl: "https://picsum.photos/seed/padthai/300/200" },
-    { id: "2c2", name: "Ramen", price: 9.49, description: "Japanese noodle soup", category: "Asian", foodCourtId: "fc2c", foodCourtName: "Noodle Bar", imageUrl: "https://picsum.photos/seed/ramen/300/200" },
+    { id: "2c1", name: "Pad Thai", price: 200.00, description: "Stir-fried rice noodles", category: "Asian", foodCourtId: "fc2c", foodCourtName: "Noodle Bar", imageUrl: "https://picsum.photos/seed/padthai/300/200" },
+    { id: "2c2", name: "Ramen", price: 230.00, description: "Japanese noodle soup", category: "Asian", foodCourtId: "fc2c", foodCourtName: "Noodle Bar", imageUrl: "https://picsum.photos/seed/ramen/300/200" },
   ],
   "fc1d": [
-    { id: "1d1", name: "Turkey Club", price: 7.29, description: "Triple decker sandwich", category: "Sandwich", foodCourtId: "fc1d", foodCourtName: "Sub Station", imageUrl: "https://picsum.photos/seed/club/300/200" },
-    { id: "1d2", name: "Veggie Delight", price: 6.79, description: "Loaded with fresh vegetables", category: "Sandwich", foodCourtId: "fc1d", foodCourtName: "Sub Station", imageUrl: "https://picsum.photos/seed/veggie/300/200" },
+    { id: "1d1", name: "Turkey Club", price: 190.00, description: "Triple decker sandwich", category: "Sandwich", foodCourtId: "fc1d", foodCourtName: "Sub Station", imageUrl: "https://picsum.photos/seed/club/300/200" },
+    { id: "1d2", name: "Veggie Delight", price: 170.00, description: "Loaded with fresh vegetables", category: "Sandwich", foodCourtId: "fc1d", foodCourtName: "Sub Station", imageUrl: "https://picsum.photos/seed/veggie/300/200" },
   ],
    "fc2d": [
-    { id: "2d1", name: "Latte", price: 3.99, description: "Espresso with steamed milk", category: "Coffee", foodCourtId: "fc2d", foodCourtName: "Coffee Stop", imageUrl: "https://picsum.photos/seed/latte/300/200" },
-    { id: "2d2", name: "Croissant", price: 2.99, description: "Buttery French pastry", category: "Pastry", foodCourtId: "fc2d", foodCourtName: "Coffee Stop", imageUrl: "https://picsum.photos/seed/croissant/300/200" },
+    { id: "2d1", name: "Latte", price: 120.00, description: "Espresso with steamed milk", category: "Coffee", foodCourtId: "fc2d", foodCourtName: "Coffee Stop", imageUrl: "https://picsum.photos/seed/latte/300/200" },
+    { id: "2d2", name: "Croissant", price: 80.00, description: "Buttery French pastry", category: "Pastry", foodCourtId: "fc2d", foodCourtName: "Coffee Stop", imageUrl: "https://picsum.photos/seed/croissant/300/200" },
   ],
   "default": [
-        { id: "def1", name: "Default Item 1", price: 5.00, description: "Description for item 1", category: "Misc", foodCourtId: "default", foodCourtName: "Unknown Court", imageUrl: "https://picsum.photos/seed/def1/300/200" },
-        { id: "def2", name: "Default Item 2", price: 6.50, description: "Description for item 2", category: "Misc", foodCourtId: "default", foodCourtName: "Unknown Court", imageUrl: "https://picsum.photos/seed/def2/300/200" },
+        { id: "def1", name: "Default Item 1", price: 100.00, description: "Description for item 1", category: "Misc", foodCourtId: "default", foodCourtName: "Unknown Court", imageUrl: "https://picsum.photos/seed/def1/300/200" },
+        { id: "def2", name: "Default Item 2", price: 120.00, description: "Description for item 2", category: "Misc", foodCourtId: "default", foodCourtName: "Unknown Court", imageUrl: "https://picsum.photos/seed/def2/300/200" },
     ]
 };
 
@@ -181,7 +181,7 @@ const Menu: FC<MenuProps> = ({ foodCourtId }) => {
               </div>
             </CardHeader>
             <CardContent className="flex-grow flex flex-col justify-end pt-2 pb-4 px-4"> {/* Adjusted padding */}
-              <p className="font-semibold text-lg mb-3">${item.price.toFixed(2)}</p>
+              <p className="font-semibold text-lg mb-3">₹{item.price.toFixed(2)}</p> {/* Changed $ to ₹ */}
               <Button className="w-full mt-auto" onClick={() => handleAddToCart(item)}>
                 <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
               </Button>
