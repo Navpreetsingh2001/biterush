@@ -12,7 +12,8 @@ export default function MenuPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <Link href="/" passHref>
+      {/* Update href to scroll to the block selection section */}
+      <Link href="/#block-selection" passHref>
          <Button variant="outline" className="mb-4">
            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blocks
          </Button>
