@@ -8,8 +8,11 @@ const AboutPage: FC = () => {
   // Dummy data - replace with real info
   const universityName = "Example University";
   const creators = [
-    { name: "Student 1", avatarUrl: "https://picsum.photos/seed/s1/100/100" },
-    { name: "Student 2", avatarUrl: "https://picsum.photos/seed/s2/100/100" },
+    { name: "Naaz", avatarUrl: "https://picsum.photos/seed/naaz/100/100" },
+    { name: "Rajnikanth", avatarUrl: "https://picsum.photos/seed/rajnikanth/100/100" },
+    { name: "Yogesh", avatarUrl: "https://picsum.photos/seed/yogesh/100/100" },
+    { name: "Lokesh", avatarUrl: "https://picsum.photos/seed/lokesh/100/100" },
+    { name: "Navpreet", avatarUrl: "https://picsum.photos/seed/navpreet/100/100" },
     // Add more creators if needed
   ];
 
@@ -54,7 +57,8 @@ const AboutPage: FC = () => {
                 <div key={index} className="flex flex-col items-center gap-2">
                   <Avatar className="h-16 w-16">
                     <AvatarImage src={creator.avatarUrl} alt={creator.name} />
-                    <AvatarFallback>{creator.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    {/* Generate fallback from the first two letters if available, else first letter */}
+                    <AvatarFallback>{creator.name.length > 1 ? creator.name.substring(0, 2).toUpperCase() : creator.name.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <p className="text-sm font-medium">{creator.name}</p>
                 </div>
