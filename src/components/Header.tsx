@@ -3,7 +3,7 @@
 
 import type { FC } from 'react';
 import Link from 'next/link';
-import { Utensils, ShoppingCart } from 'lucide-react';
+import { Utensils, ShoppingCart, Info } from 'lucide-react'; // Added Info icon
 import { useCart } from '@/context/CartContext'; // Import useCart
 import { Badge } from "@/components/ui/badge"; // Import Badge
 
@@ -17,8 +17,12 @@ const Header: FC = () => {
           <Utensils className="h-6 w-6" />
           <span>Biterush</span> {/* Updated text */}
         </Link>
-        <nav>
-          <Link href="/cart" className="relative flex items-center gap-2 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">
+        <nav className="flex items-center gap-4"> {/* Use flex and gap for nav items */}
+           <Link href="/about" className="flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">
+              <Info className="h-5 w-5" />
+              <span className="hidden sm:inline">About</span> {/* Hide text on small screens */}
+           </Link>
+          <Link href="/cart" className="relative flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90"> {/* Adjusted gap */}
             <ShoppingCart className="h-6 w-6" />
             <span className="hidden sm:inline">Cart</span> {/* Hide text on small screens */}
             {totalItems > 0 && (
