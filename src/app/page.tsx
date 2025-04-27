@@ -13,11 +13,14 @@ export default function Home() {
   return (
     <div className="container mx-auto p-4">
       <Hero /> {/* Add the Hero section here */}
-      <h1 className="text-2xl font-bold mb-4 text-center md:text-left">Order Food on Campus</h1>
-      <BlockSelection onBlockSelect={(block) => {
-        setSelectedBlock(block);
-        setSelectedFoodCourt(null); // Reset food court when block changes
-      }} />
+      <h1 className="text-3xl font-bold mb-6 text-center md:text-left text-primary">Order Food on Campus</h1>
+      <BlockSelection
+        selectedBlock={selectedBlock} // Pass selected block state
+        onBlockSelect={(block) => {
+          setSelectedBlock(block);
+          setSelectedFoodCourt(null); // Reset food court when block changes
+        }}
+      />
       {selectedBlock && (
         <FoodCourtList block={selectedBlock} onFoodCourtSelect={(foodCourt) => setSelectedFoodCourt(foodCourt)} />
       )}
