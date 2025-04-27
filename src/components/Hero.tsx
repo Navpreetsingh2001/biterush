@@ -10,16 +10,25 @@ const Hero = () => {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     if (index < fullText.length) {
-      const timeoutId = setTimeout(() => {
+      // Typing effect
+      timeoutId = setTimeout(() => {
         setDisplayedText((prev) => prev + fullText.charAt(index));
         setIndex((prev) => prev + 1);
       }, 100); // Adjust typing speed here (milliseconds)
-
-      // Cleanup function to clear the timeout if the component unmounts
-      // or if the index changes before the timeout completes
-      return () => clearTimeout(timeoutId);
+    } else {
+      // Pause after typing is complete before restarting
+      timeoutId = setTimeout(() => {
+        setDisplayedText(""); // Reset text
+        setIndex(0); // Reset index to start loop
+      }, 2000); // Pause duration (2 seconds)
     }
+
+    // Cleanup function to clear the timeout if the component unmounts
+    // or if the index changes before the timeout completes
+    return () => clearTimeout(timeoutId);
   }, [index, fullText]); // Depend on index and fullText
 
   const handleGetStartedClick = () => {
@@ -39,8 +48,10 @@ const Hero = () => {
               {/* Display the dynamically changing text */}
               <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary min-h-[72px] sm:min-h-[90px] xl:min-h-[120px]"> {/* Added min-height to prevent layout shift */}
                 {displayedText}
-                {/* Blinking cursor effect */}
-                <span className="inline-block w-1 h-8 sm:h-12 xl:h-16 bg-primary animate-pulse ml-1"></span>
+                {/* Blinking cursor effect - show only while typing */}
+                {index < fullText.length && (
+                    <span className="inline-block w-1 h-8 sm:h-12 xl:h-16 bg-primary animate-pulse ml-1"></span>
+                )}
               </h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto lg:mx-0">
                 Order your favorite meals from campus food courts easily and quickly. Skip the lines and enjoy delicious food delivered right where you are.
