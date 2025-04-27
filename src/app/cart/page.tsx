@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label"; // Import Label
-import { Minus, Plus, Trash2, QrCode, ShoppingBag, ArrowLeft, Clock, Ban, Info, CheckCircle, MapPin, LocateFixed, Image as ImageIcon } from 'lucide-react'; // Added ImageIcon
+import { Minus, Plus, Trash2, QrCode, ShoppingBag, ArrowLeft, Clock, Ban, Info, CheckCircle, MapPin, LocateFixed, Image as ImageIcon, Loader2 } from 'lucide-react'; // Added ImageIcon, Loader2
 import Image from 'next/image';
 import Link from 'next/link';
 import { generateGPayQRCode, type GPayQRCode } from '@/services/gpay'; // Ensure this path is correct
@@ -53,53 +53,76 @@ const CartPage: FC = () => {
 
   // Generate QR Code Effect - Triggered when location is set and cart is not empty
   useEffect(() => {
-    if (!isClient || paymentCompletedAt || isGeneratingQR || !deliveryLocation || cartItems.length === 0 || gpayQRCode) return; // Guard conditions
+    // Guard conditions: Run only on client, before payment, not already generating, location set, cart not empty, price > 0, and QR not already generated
+    if (!isClient || paymentCompletedAt || isGeneratingQR || !deliveryLocation || cartItems.length === 0 || totalPrice <= 0 || gpayQRCode) {
+        // If conditions are not met, ensure QR code is null and not loading
+        if(gpayQRCode && (!deliveryLocation || cartItems.length === 0 || totalPrice <= 0)) {
+            setGPayQRCode(null); // Clear QR code if cart becomes empty or location removed
+        }
+        setIsGeneratingQR(false); // Ensure loading state is off
+        return;
+    }
+
 
     const generateQRCode = async () => {
       setIsGeneratingQR(true); // Indicate QR generation start
-      if (totalPrice > 0) {
-        try {
-          console.log("Generating QR Code for total:", totalPrice);
-          const gpayData: GPayQRCode = await generateGPayQRCode(totalPrice);
-          const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(gpayData.qrCode)}`;
-          setGPayQRCode(qrCodeUrl);
+      console.log("Attempting to generate QR Code for total:", totalPrice);
+      try {
+        const gpayData: GPayQRCode = await generateGPayQRCode(totalPrice);
+        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(gpayData.qrCode)}`;
+        setGPayQRCode(qrCodeUrl);
+        console.log("QR Code URL generated:", qrCodeUrl);
+         toast({
+             title: "QR Code Ready",
+             description: "Scan the QR code with GPay to complete your payment.",
+             variant: "default",
+         });
 
-          // *** Simulate payment completion AFTER QR Code is visible ***
-          // We set a short delay to allow the QR code to render before showing confirmation/cancel
-          setTimeout(() => {
-             setPaymentCompletedAt(new Date());
-             setCanCancel(true); // Enable cancellation window
-             setCancellationExpired(false);
-             setTimeLeft(CANCELLATION_WINDOW_MINUTES * 60); // Reset timer
-             console.log("QR Code displayed, payment considered completed at:", new Date());
-              toast({
-                  title: "Payment Ready",
-                  description: "Scan the QR code with GPay to complete your payment.",
-                  variant: "default",
-              });
-              setIsGeneratingQR(false); // QR Generation finished
-          }, 500); // Delay in ms, adjust if needed
-
-
-        } catch (error) {
-          console.error("Failed to generate QR code:", error);
-          setGPayQRCode(null);
-          setIsGeneratingQR(false); // Reset loading state on error
-           toast({
-              title: "Error",
-              description: "Failed to generate payment QR code. Please try again.",
-              variant: "destructive",
-           });
-        }
-      } else {
+      } catch (error) {
+        console.error("Failed to generate QR code:", error);
         setGPayQRCode(null);
-        setIsGeneratingQR(false); // Reset loading state if price is 0
+         toast({
+            title: "Error",
+            description: "Failed to generate payment QR code. Please try again.",
+            variant: "destructive",
+         });
+      } finally {
+          setIsGeneratingQR(false); // QR Generation finished (success or fail)
       }
     };
 
     generateQRCode();
 
   }, [totalPrice, isClient, cartItems.length, deliveryLocation, paymentCompletedAt, isGeneratingQR, gpayQRCode, toast]); // Dependencies
+
+
+   // Effect to Simulate Payment Completion AFTER QR Code is generated
+   useEffect(() => {
+     // Run only if QR code exists and payment hasn't been marked complete yet
+     if (!isClient || !gpayQRCode || paymentCompletedAt) {
+       return;
+     }
+
+     console.log("QR Code state updated, simulating payment completion shortly...");
+
+     // Simulate payment completion shortly after QR Code is set, allowing render time
+     const paymentTimeout = setTimeout(() => {
+       setPaymentCompletedAt(new Date());
+       setCanCancel(true); // Enable cancellation window
+       setCancellationExpired(false);
+       setTimeLeft(CANCELLATION_WINDOW_MINUTES * 60); // Reset timer
+       console.log("Payment considered completed at:", new Date());
+        toast({
+             title: "Payment Processing",
+             description: "Payment received (simulated). You have a short window to cancel.",
+             variant: "default",
+        });
+     }, 300); // Delay in ms (adjust if needed, e.g., 100-500ms)
+
+     // Cleanup timeout if gpayQRCode changes or component unmounts
+     return () => clearTimeout(paymentTimeout);
+
+   }, [gpayQRCode, isClient, paymentCompletedAt, toast]); // Depends on gpayQRCode state
 
 
   // Cancellation Timer Effect
@@ -147,6 +170,7 @@ const CartPage: FC = () => {
     }
     const quantity = Math.max(0, newQuantity); // Ensure quantity doesn't go below 0
     updateQuantity(itemId, quantity);
+    setGPayQRCode(null); // Reset QR code on quantity change before payment
   };
 
    const handleRemoveItem = (itemId: string) => {
@@ -155,6 +179,7 @@ const CartPage: FC = () => {
        return;
      }
      removeFromCart(itemId);
+     setGPayQRCode(null); // Reset QR code on remove change before payment
    };
 
    const handleClearCart = () => {
@@ -207,6 +232,7 @@ const CartPage: FC = () => {
         const trimmedLocation = locationInput.trim();
         if (trimmedLocation) {
             setDeliveryLocation(trimmedLocation); // Update location in context only if not empty
+             setGPayQRCode(null); // Reset QR code if location changes before payment
         } else {
              toast({ title: "Invalid Location", description: "Please enter a valid delivery location.", variant: "destructive"});
         }
@@ -234,6 +260,7 @@ const CartPage: FC = () => {
                 setLocationInput(locationString);
                 setDeliveryLocation(locationString); // Update context
                 setIsLocating(false);
+                setGPayQRCode(null); // Reset QR code if location changes before payment
                 toast({ title: "Location Fetched", description: "Current location coordinates set." });
             },
             (error: GeolocationPositionError) => {
@@ -499,26 +526,39 @@ const CartPage: FC = () => {
                     </>
                  )}
 
-                 {/* === Payment / QR Code Section (Shown BEFORE payment confirmation) === */}
-                 {!paymentCompletedAt && deliveryLocation && cartItems.length > 0 && (
-                   <div className="mt-6 text-center border-t pt-6">
-                     {isGeneratingQR && (
-                       <p className="text-muted-foreground mb-3">Generating QR Code...</p>
-                     )}
-                     {gpayQRCode && !isGeneratingQR && (
-                       <>
-                         <p className="text-muted-foreground mb-3 flex items-center justify-center gap-1">
-                           <QrCode className="h-5 w-5"/> Scan with GPay to Pay
-                         </p>
-                         <div className="flex justify-center bg-white p-2 rounded-md">
-                           <Image src={gpayQRCode} alt="GPay QR Code" width={200} height={200} priority />
-                         </div>
-                       </>
-                     )}
-                   </div>
-                 )}
+                  {/* === Payment / QR Code Section === */}
+                  {/* Show this section ONLY if location is set, cart has items, and payment is NOT completed */}
+                  {deliveryLocation && cartItems.length > 0 && !paymentCompletedAt && (
+                       <div className="mt-6 text-center border-t pt-6">
+                           {isGeneratingQR && (
+                               <div className="flex flex-col items-center justify-center text-muted-foreground">
+                                   <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                                   <p>Generating QR Code...</p>
+                               </div>
+                           )}
+                           {!isGeneratingQR && gpayQRCode && ( // Ensure QR code exists and not loading
+                               <>
+                                   <p className="text-muted-foreground mb-3 flex items-center justify-center gap-1">
+                                       <QrCode className="h-5 w-5" /> Scan with GPay to Pay
+                                   </p>
+                                   <div className="flex justify-center bg-white p-2 rounded-md shadow">
+                                       <Image src={gpayQRCode} alt="GPay QR Code" width={200} height={200} priority />
+                                   </div>
+                               </>
+                           )}
+                           {/* Show message if QR generation failed or conditions not met */}
+                           {!isGeneratingQR && !gpayQRCode && totalPrice > 0 && (
+                               <p className="text-destructive text-sm">Could not generate QR code. Please try again.</p>
+                           )}
+                           {/* Show message if price is zero */}
+                            {!isGeneratingQR && !gpayQRCode && totalPrice <= 0 && (
+                                <p className="text-muted-foreground text-sm">Cart total is zero.</p>
+                            )}
+                       </div>
+                  )}
 
-                  {/* Prompt to set location if needed */}
+
+                  {/* Prompt to set location if needed (and payment not done) */}
                   {!deliveryLocation && cartItems.length > 0 && !paymentCompletedAt && (
                        <Alert variant="destructive" className="mt-4">
                           <AlertTitle>Set Delivery Location</AlertTitle>
@@ -593,3 +633,5 @@ const CartPage: FC = () => {
 }
 
 export default CartPage;
+
+    
