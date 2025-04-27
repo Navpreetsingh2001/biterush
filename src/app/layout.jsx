@@ -2,7 +2,7 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/Header'; // Import Header
-import Footer from '@/components/Footer.jsx'; // Import Footer - Ensure this file exists at src/components/Footer.jsx
+import Footer from '@/components/Footer.jsx'; // Corrected import path by adding .jsx extension
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster
 import { CartProvider } from '@/context/CartContext'; // Import CartProvider
 
