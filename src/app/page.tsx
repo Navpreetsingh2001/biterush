@@ -3,6 +3,7 @@
 import BlockSelection from '@/components/BlockSelection';
 import FoodCourtList from '@/components/FoodCourtList';
 import Menu from '@/components/Menu';
+import Hero from '@/components/Hero'; // Import the new Hero component
 import { useState } from 'react';
 
 export default function Home() {
@@ -11,8 +12,12 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Campus Grub</h1>
-      <BlockSelection onBlockSelect={(block) => setSelectedBlock(block)} />
+      <Hero /> {/* Add the Hero section here */}
+      <h1 className="text-2xl font-bold mb-4 text-center md:text-left">Order Food on Campus</h1>
+      <BlockSelection onBlockSelect={(block) => {
+        setSelectedBlock(block);
+        setSelectedFoodCourt(null); // Reset food court when block changes
+      }} />
       {selectedBlock && (
         <FoodCourtList block={selectedBlock} onFoodCourtSelect={(foodCourt) => setSelectedFoodCourt(foodCourt)} />
       )}
@@ -22,4 +27,3 @@ export default function Home() {
     </div>
   );
 }
-
