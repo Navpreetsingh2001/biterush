@@ -1,4 +1,3 @@
-
 "use client"; // Add this directive
 
 import type { FC } from 'react';
@@ -11,6 +10,7 @@ import { Button } from "@/components/ui/button"; // Import Button
 import { useMemo } from 'react'; // Import useMemo
 import { logoutUser } from '@/actions/auth'; // Import logout action
 import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { ThemeToggle } from '@/components/ThemeToggle'; // Import ThemeToggle
 
 const Header: FC = () => {
   const { totalItems: rawTotalItems } = useCart(); // Get totalItems from CartContext
@@ -40,7 +40,7 @@ const Header: FC = () => {
           <Utensils className="h-6 w-6" />
           <span>Biterush</span> {/* Updated text */}
         </Link>
-        <nav className="flex items-center gap-2 md:gap-4"> {/* Use flex and gap for nav items */}
+        <nav className="flex items-center gap-1 md:gap-2"> {/* Use flex and gap for nav items */}
            <Link href="/about" className="flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">
               <Info className="h-5 w-5" />
               <span className="hidden sm:inline">About</span> {/* Hide text on small screens */}
@@ -59,7 +59,7 @@ const Header: FC = () => {
           {loading ? (
              <div className="h-6 w-20 animate-pulse bg-primary/70 rounded-md"></div> // Skeleton loader
           ) : user ? (
-             <div className="flex items-center gap-2">
+             <div className="flex items-center gap-1 md:gap-2">
                 <span className="text-sm hidden md:inline">Hi, {user.username}</span>
                 <Button variant="ghost" size="sm" onClick={handleLogout} className="hover:bg-primary/80 hover:text-accent p-2">
                      <LogOut className="h-5 w-5 mr-1 md:mr-2" />
@@ -67,7 +67,7 @@ const Header: FC = () => {
                  </Button>
              </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 md:gap-2">
                <Link href="/login" passHref>
                   <Button variant="ghost" size="sm" className="hover:bg-primary/80 hover:text-accent p-2">
                      <LogIn className="h-5 w-5 mr-1 md:mr-2" />
@@ -82,6 +82,8 @@ const Header: FC = () => {
                  </Link>
              </div>
           )}
+           {/* Add Theme Toggle */}
+           <ThemeToggle />
         </nav>
       </div>
     </header>

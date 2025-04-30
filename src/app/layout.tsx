@@ -8,6 +8,7 @@ import Footer from '@/components/Footer'; // Corrected import path
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster
 import { CartProvider } from '@/context/CartContext'; // Import CartProvider
 import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
+import { ThemeProvider } from "@/components/ThemeProvider"; // Import ThemeProvider
 
 export const metadata: Metadata = {
   title: 'Biterush', // Updated title
@@ -21,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     // Removed GeistSans.variable and GeistMono.variable from className
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" suppressHydrationWarning> {/* suppressHydrationWarning for next-themes */}
        <head>
          {/* Preconnect to external domains used for critical resources */}
          <link rel="preconnect" href="https://picsum.photos" />
@@ -31,16 +32,23 @@ export default function RootLayout({
          {/* <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" /> */}
        </head>
       <body className="antialiased flex flex-col min-h-screen bg-background text-foreground"> {/* Ensure base styles are applied */}
-        <AuthProvider> {/* Wrap with AuthProvider */}
-          <CartProvider> {/* Wrap everything with CartProvider */}
-            <Header /> {/* Add Header */}
-            <main className="flex-grow container mx-auto px-4 py-8"> {/* Add padding to main content */}
-              {children}
-            </main>
-            <Toaster /> {/* Add Toaster for notifications */}
-            <Footer /> {/* Add Footer */}
-          </CartProvider>
-        </AuthProvider>
+         <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AuthProvider> {/* Wrap with AuthProvider */}
+              <CartProvider> {/* Wrap everything with CartProvider */}
+                <Header /> {/* Add Header */}
+                <main className="flex-grow container mx-auto px-4 py-8"> {/* Add padding to main content */}
+                  {children}
+                </main>
+                <Toaster /> {/* Add Toaster for notifications */}
+                <Footer /> {/* Add Footer */}
+              </CartProvider>
+            </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
