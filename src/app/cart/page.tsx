@@ -358,7 +358,6 @@ const CartPage: FC = () => {
 
 
   return (
-    <>
     
        
             
@@ -418,6 +417,7 @@ const CartPage: FC = () => {
                   
                     {group.items.map((item) => (
                       
+                        
                         {/* Item Image */}
                          
                            {item.imageUrl ? (
@@ -486,7 +486,7 @@ const CartPage: FC = () => {
                       
                   
                 
-              )}
+              ))}
 
                {/* Order Placed Message - Show if payment completed and cancellation window expired */}
                {paymentCompletedAt && cancellationExpired && cartItems.length > 0 && (
@@ -636,7 +636,7 @@ const CartPage: FC = () => {
 
                      
                         
-                            Need to cancel? You have  left.
+                            Need to cancel? You have {formatTime(timeLeft)} left.
                             
                               
                                Cancel Order (No Refund)
@@ -672,7 +672,7 @@ const CartPage: FC = () => {
           
         
       )}
-    </>
+    
   );
 }
 
