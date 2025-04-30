@@ -9,10 +9,10 @@ const AboutPage: FC = () => {
   const universityName = "Lovely Professional University";
   // Updated creators list (removed Lokesh)
   const creators = [
-    { name: "Naaz", avatarUrl: "https://picsum.photos/seed/naaz/100/100", fallback: "N" },
-    { name: "Rajnikanth", avatarUrl: "https://picsum.photos/seed/rajnikanth/100/100", fallback: "R" },
-    { name: "Yogesh", avatarUrl: "https://picsum.photos/seed/yogesh/100/100", fallback: "Y" },
-    { name: "Navpreet", avatarUrl: "https://picsum.photos/seed/navpreet/100/100", fallback: "NA" },
+    { name: "Naaz", fallback: "N" }, // Removed avatarUrl
+    { name: "Rajnikanth", fallback: "R" }, // Removed avatarUrl
+    { name: "Yogesh", fallback: "Y" }, // Removed avatarUrl
+    { name: "Navpreet", fallback: "NA" }, // Removed avatarUrl
     // Add more creators if needed
   ];
 
@@ -57,7 +57,7 @@ const AboutPage: FC = () => {
               {creators.map((creator, index) => (
                 <div key={index} className="flex flex-col items-center gap-2">
                   <Avatar className="h-16 w-16">
-                    <AvatarImage src={creator.avatarUrl} alt={creator.name} />
+                    {/* Removed AvatarImage */}
                     {/* Use the specified fallback */}
                     <AvatarFallback>{creator.fallback}</AvatarFallback>
                   </Avatar>
