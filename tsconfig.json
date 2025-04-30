@@ -1,3 +1,4 @@
+
 {
   "compilerOptions": {
     "target": "ES2017",
@@ -25,7 +26,8 @@
     "baseUrl": ".", // Add baseUrl
     "paths": { // Add paths mapping
       "@/*": ["src/*"]
-    }
+    },
+    "types": ["node", "@types/bcryptjs"] // Add bcryptjs types
   },
   "include": [
     "next-env.d.ts",

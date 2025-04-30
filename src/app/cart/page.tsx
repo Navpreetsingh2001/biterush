@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label"; // Import Label
-import { Minus, Plus, Trash2, QrCode, ShoppingBag, ArrowLeft, Clock, Ban, Info, CheckCircle, MapPin, LocateFixed, Image as ImageIcon, Loader2 } from 'lucide-react'; // Added ImageIcon, Loader2
+import { Minus, Plus, Trash2, QrCode, ShoppingBag, ArrowLeft, Clock, Ban, Info, CheckCircle, MapPin, LocateFixed, Image as ImageIcon, Loader2, UserX } from 'lucide-react'; // Added UserX
 import Image from 'next/image';
 import Link from 'next/link';
 // Corrected import: Use upi.ts and generateUPIQRCode
@@ -17,6 +17,7 @@ import { generateUPIQRCode, type UPIQRCode } from '@/services/upi';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import type { CartItem } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 // Helper function to estimate delivery time
 const estimateDeliveryTime = (itemCount: number): number => {
@@ -31,6 +32,7 @@ const CartPage: FC = () => {
   const { cartItems, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice, deliveryLocation, setDeliveryLocation } = useCart();
   const { toast } = useToast();
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth(); // Get user and loading state
   const [upiQRCode, setUpiQRCode] = useState<string | null>(null); // Changed state name
   const [isClient, setIsClient] = useState<boolean>(false);
   const [paymentCompletedAt, setPaymentCompletedAt] = useState<Date | null>(null);
@@ -52,13 +54,27 @@ const CartPage: FC = () => {
     }
   }, [deliveryLocation]); // Add deliveryLocation dependency
 
+  // Redirect if not logged in (client-side guard)
+   useEffect(() => {
+       // Redirect only when auth check is complete and user is not logged in
+       if (isClient && !authLoading && !user) {
+           toast({
+               title: "Authentication Required",
+               description: "Please log in to view your cart.",
+               variant: "destructive",
+           });
+           router.push('/login?redirectedFrom=/cart'); // Redirect to login, passing current path
+       }
+   }, [isClient, authLoading, user, router, toast]);
+
+
   // Generate QR Code Effect - Triggered when location is set and cart is not empty
   useEffect(() => {
-    // Guard conditions: Run only on client, before payment, not already generating, location set, cart not empty, price > 0, and QR not already generated
-    if (!isClient || paymentCompletedAt || isGeneratingQR || !deliveryLocation || cartItems.length === 0 || totalPrice <= 0 || upiQRCode) {
+    // Guard conditions: Run only on client, user logged in, before payment, not already generating, location set, cart not empty, price > 0, and QR not already generated
+    if (!isClient || !user || paymentCompletedAt || isGeneratingQR || !deliveryLocation || cartItems.length === 0 || totalPrice <= 0 || upiQRCode) {
         // If conditions are not met, ensure QR code is null and not loading
-        if(upiQRCode && (!deliveryLocation || cartItems.length === 0 || totalPrice <= 0)) {
-            setUpiQRCode(null); // Clear QR code if cart becomes empty or location removed
+        if(upiQRCode && (!deliveryLocation || cartItems.length === 0 || totalPrice <= 0 || !user)) {
+            setUpiQRCode(null); // Clear QR code if cart becomes empty, location removed, or user logs out
         }
         setIsGeneratingQR(false); // Ensure loading state is off
         return;
@@ -96,8 +112,8 @@ const CartPage: FC = () => {
 
     generateQRCode();
 
-  // IMPORTANT: Added upiQRCode to dependencies to ensure this effect reacts correctly
-  }, [totalPrice, isClient, cartItems.length, deliveryLocation, paymentCompletedAt, isGeneratingQR, upiQRCode, toast]); // Dependencies
+  // IMPORTANT: Added upiQRCode and user to dependencies
+  }, [totalPrice, isClient, user, cartItems.length, deliveryLocation, paymentCompletedAt, isGeneratingQR, upiQRCode, toast]); // Dependencies
 
 
    // Effect to Simulate Payment Completion AFTER QR Code is generated
@@ -295,10 +311,38 @@ const CartPage: FC = () => {
     return acc;
   }, {} as Record<string, { name: string; items: CartItem[] }>);
 
-  if (!isClient) {
-     // Render loading state or null during SSR/initial render
-     return <div className="text-center p-10">Loading Cart...</div>;
+  if (!isClient || authLoading) {
+     // Show loading state while checking auth or during SSR
+     return (
+         <div className="text-center p-10 flex flex-col items-center gap-4">
+             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+             <p>Loading Cart...</p>
+         </div>
+      );
   }
+
+   // If finished loading and still no user, show message (should be handled by redirect, but as fallback)
+   if (!user) {
+     return (
+       <div className="container mx-auto px-4 py-8 text-center">
+         <Card className="max-w-md mx-auto p-6">
+           <CardHeader>
+              <CardTitle className="flex items-center justify-center gap-2 text-destructive">
+                 <UserX /> Access Denied
+              </CardTitle>
+           </CardHeader>
+           <CardContent>
+             <p className="text-muted-foreground mb-4">
+                 You need to be logged in to view your cart.
+             </p>
+             <Link href="/login?redirectedFrom=/cart">
+               <Button>Go to Login</Button>
+             </Link>
+           </CardContent>
+         </Card>
+       </div>
+     );
+   }
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);

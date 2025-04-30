@@ -7,6 +7,7 @@ import Header from '@/components/Header'; // Import Header
 import Footer from '@/components/Footer'; // Corrected import path
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster
 import { CartProvider } from '@/context/CartContext'; // Import CartProvider
+import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
 
 export const metadata: Metadata = {
   title: 'Biterush', // Updated title
@@ -30,14 +31,16 @@ export default function RootLayout({
          {/* <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" /> */}
        </head>
       <body className="antialiased flex flex-col min-h-screen bg-background text-foreground"> {/* Ensure base styles are applied */}
-        <CartProvider> {/* Wrap everything with CartProvider */}
-          <Header /> {/* Add Header */}
-          <main className="flex-grow container mx-auto px-4 py-8"> {/* Add padding to main content */}
-            {children}
-          </main>
-          <Toaster /> {/* Add Toaster for notifications */}
-          <Footer /> {/* Add Footer */}
-        </CartProvider>
+        <AuthProvider> {/* Wrap with AuthProvider */}
+          <CartProvider> {/* Wrap everything with CartProvider */}
+            <Header /> {/* Add Header */}
+            <main className="flex-grow container mx-auto px-4 py-8"> {/* Add padding to main content */}
+              {children}
+            </main>
+            <Toaster /> {/* Add Toaster for notifications */}
+            <Footer /> {/* Add Footer */}
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );
