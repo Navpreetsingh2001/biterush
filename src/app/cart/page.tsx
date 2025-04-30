@@ -317,38 +317,37 @@ const CartPage: FC = () => {
   }, {});
 
   if (!isClient || authLoading) {
-     // Show loading state while checking auth or during SSR
-     return (
-         
-             
-                 Loading Cart...
-             
-         
-      );
-  }
+       return (
+           
+               
+                   Loading Cart...
+               
+           
+        );
+    }
 
-   // If finished loading and still no user, show message (should be handled by redirect, but as fallback)
-   if (!user) {
-     return (
-       
+     // If finished loading and still no user, show message (should be handled by redirect, but as fallback)
+     if (!user) {
+       return (
          
            
-              
-                 Access Denied
-              
-           
-           
              
-                 You need to be logged in to view your cart.
+                
+                   Access Denied
+                
              
              
-               Go to Login
+               
+                   You need to be logged in to view your cart.
+               
+               
+                 Go to Login
+               
              
            
          
-       
-     );
-   }
+       );
+     }
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
