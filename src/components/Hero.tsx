@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { UtensilsCrossed } from "lucide-react";
 import { gsap } from "gsap"; // Import GSAP
-// Removed Image import
+import Image from 'next/image'; // Import Next.js Image component
 
 const Hero: FC = () => { // Add : FC type annotation back
   const fullText = "Welcome to Biterush"; // Updated text
@@ -18,7 +18,7 @@ const Hero: FC = () => { // Add : FC type annotation back
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
-  const iconRef = useRef<SVGSVGElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null); // Ref for the image container
 
 
   // Typing effect for the title
@@ -47,11 +47,12 @@ const Hero: FC = () => { // Add : FC type annotation back
 
   // GSAP animation effect
   useEffect(() => {
-    if (heroRef.current && titleRef.current && descriptionRef.current && buttonRef.current && iconRef.current) {
+    // Added imageContainerRef to the dependency check
+    if (heroRef.current && titleRef.current && descriptionRef.current && buttonRef.current && imageContainerRef.current) {
        // Ensure GSAP context for proper cleanup
        const ctx = gsap.context(() => {
-            // Initial state (hidden)
-            gsap.set([titleRef.current, descriptionRef.current, buttonRef.current, iconRef.current], { autoAlpha: 0, y: 20 });
+            // Initial state (hidden) - added imageContainerRef
+            gsap.set([titleRef.current, descriptionRef.current, buttonRef.current, imageContainerRef.current], { autoAlpha: 0, y: 20 });
 
             // Animation timeline
             const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -59,12 +60,14 @@ const Hero: FC = () => { // Add : FC type annotation back
             tl.to(titleRef.current, { autoAlpha: 1, y: 0, duration: 0.8 })
               .to(descriptionRef.current, { autoAlpha: 1, y: 0, duration: 0.6 }, "-=0.5") // Overlap animation slightly
               .to(buttonRef.current, { autoAlpha: 1, y: 0, duration: 0.5 }, "-=0.4")
-              .to(iconRef.current, { autoAlpha: 0.7, y: 0, duration: 0.8 }, "-=0.5"); // Animate icon
+              // Animate the image container instead of the icon
+              .to(imageContainerRef.current, { autoAlpha: 1, y: 0, duration: 0.8 }, "-=0.5");
 
        }, heroRef); // Scope the context to the heroRef
 
        return () => ctx.revert(); // Cleanup GSAP animations on unmount
     }
+    // Added imageContainerRef to dependency array
   }, []); // Run animation once on mount
 
   const handleGetStartedClick = () => {
@@ -84,9 +87,6 @@ const Hero: FC = () => { // Add : FC type annotation back
       // Removed relative, overflow-hidden. Added padding and background color for separation.
       className="w-full py-12 md:py-24 lg:py-32 xl:py-48 mb-8 rounded-lg shadow-md bg-card"
     >
-       {/* Removed Background Image */}
-        {/* Removed Overlay */}
-
        {/* Content */}
       {/* Removed relative z-10 */}
       <div className="container px-4 md:px-6">
@@ -125,11 +125,18 @@ const Hero: FC = () => { // Add : FC type annotation back
                </Button>
             </div>
           </div>
-          <div className="flex items-center justify-center">
-            <UtensilsCrossed
-              ref={iconRef} // Add ref for animation
-              // Use standard accent color
-              className="h-32 w-32 md:h-48 md:w-48 lg:h-64 lg:w-64 text-accent opacity-0 invisible" // Use accent color, start invisible and opacity 0
+          {/* Replace Icon with Image Component */}
+          <div
+             ref={imageContainerRef} // Add ref for animation target
+             className="flex items-center justify-center invisible" // Start invisible for GSAP
+          >
+            <Image
+                src="https://picsum.photos/seed/foodcourt/600/400" // Placeholder food court image
+                alt="University Food Court"
+                width={600} // Provide width
+                height={400} // Provide height
+                className="rounded-lg object-cover shadow-lg aspect-video" // Style the image
+                priority // Prioritize loading this image
             />
           </div>
         </div>
