@@ -1,4 +1,3 @@
-
 "use server";
 
 import { z } from 'zod';
@@ -155,8 +154,8 @@ export async function loginUser(data: z.infer<typeof loginSchema>): Promise<Auth
             // Simulate admin login - IN PRODUCTION, VERIFY PASSWORD FROM DB
             // For simulation, we might just check the password directly or assume it's correct
             // Here, we'll assume password 'adminpass' for the admin
-            const isAdminPasswordCorrect = password === 'adminpass'; // VERY INSECURE - ONLY FOR SIMULATION
-            if (isAdminPasswordCorrect) {
+            // VERY INSECURE - ONLY FOR SIMULATION
+            if (password === 'adminpass') {
                  user = {
                     id: 'admin-001',
                     username: 'Admin',
@@ -171,15 +170,19 @@ export async function loginUser(data: z.infer<typeof loginSchema>): Promise<Auth
             }
          } else if (email === 'test@example.com') {
             // Simulate a regular user - NEED DB lookup and hash comparison in production
-            const isUserPasswordCorrect = await bcrypt.compare(password, await bcrypt.hash('password123', 10)); // Compare against a simulated hash
+            const simulatedHashedPassword = await bcrypt.hash('password123', 10);
+             const isUserPasswordCorrect = await bcrypt.compare(password, simulatedHashedPassword); // Compare against a simulated hash
+
             if(isUserPasswordCorrect) {
                  user = {
                      id: '123',
                      username: 'testuser',
                      email: 'test@example.com',
                      role: 'user',
-                     passwordHash: await bcrypt.hash('password123', 10) // Store hash if needed later, but don't return it
-                };
+                 };
+                 console.log("Test user login attempt successful (simulated).");
+            } else {
+                 console.log("Test user login attempt failed: Incorrect password (simulated).");
             }
          }
         // --- END PLACEHOLDER ---
@@ -189,13 +192,6 @@ export async function loginUser(data: z.infer<typeof loginSchema>): Promise<Auth
             return { success: false, error: "Invalid email or password." }; // Keep error generic
         }
 
-        // Password comparison is handled within the simulation block above
-        // If using DB, perform bcrypt.compare here:
-        // const isPasswordValid = await bcrypt.compare(password, userFromDb.passwordHash);
-        // if (!isPasswordValid) {
-        //     console.log("Login attempt failed: Invalid password for email", email);
-        //     return { success: false, error: "Invalid email or password." }; // Keep error generic
-        // }
 
         // Login successful
          console.log("User logged in:", { id: user.id, username: user.username, email: user.email, role: user.role });
