@@ -1,13 +1,13 @@
-
 "use client";
 
-import type { FC } from 'react';
+import type { FC } from 'react'; // Import FC type
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { UtensilsCrossed } from "lucide-react";
 import { gsap } from "gsap"; // Import GSAP
 import Image from 'next/image'; // Import Next Image component
 
+// Restore FC type annotation
 const Hero: FC = () => {
   const fullText = "Welcome to Biterush"; // Updated text
   const [displayedText, setDisplayedText] = useState<string>("");
