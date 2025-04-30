@@ -2,9 +2,10 @@
 "use client";
 
 import type { FC } from 'react';
-import BlockSelection from '@/components/BlockSelection'; // Corrected import path if necessary
+import BlockSelection from '@/components/BlockSelection';
 import FoodCourtList from '@/components/FoodCourtList';
 import Hero from '@/components/Hero'; // Import the new Hero component
+import FeedbackSection from '@/components/FeedbackSection'; // Import FeedbackSection
 import { useState, useRef, useEffect } from 'react';
 import type { FoodCourt } from '@/components/FoodCourtList'; // Import type
 
@@ -50,10 +51,14 @@ const Home: FC = () => {
         .then(data => {
           setFoodCourts(data);
           setIsLoadingFoodCourts(false);
-          // Scroll after data is loaded
-          if (foodCourtListRef.current && typeof window !== 'undefined' && !window.location.hash) {
-             foodCourtListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+          // Scroll after data is loaded and feedback section is rendered
+          // Consider a slight delay to ensure FeedbackSection is in the DOM if it appears conditionally
+          setTimeout(() => {
+             if (foodCourtListRef.current && typeof window !== 'undefined' && !window.location.hash) {
+                foodCourtListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+             }
+          }, 100); // Adjust delay if needed
+
         })
         .catch(error => {
           console.error("Failed to fetch food courts:", error);
@@ -65,20 +70,6 @@ const Home: FC = () => {
     }
   }, [selectedBlock]);
 
-
-  // Scroll to the food court list when a block is selected and data is potentially available
-  // This effect handles the scrolling part, separated from data fetching
-  useEffect(() => {
-    if (selectedBlock && foodCourts.length > 0 && foodCourtListRef.current) {
-      // Check if the navigation wasn't triggered by the back button with a hash
-      if (typeof window !== 'undefined' && !window.location.hash) {
-          // Consider a slight delay if needed for content rendering after state update
-          // setTimeout(() => {
-          //    foodCourtListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          // }, 100);
-      }
-    }
-  }, [selectedBlock, foodCourts]); // Depends on block and loaded food courts
 
 
   return (
@@ -95,6 +86,10 @@ const Home: FC = () => {
           }}
         />
       </div>
+
+      {/* Add the Feedback Section here */}
+      <FeedbackSection />
+
       {/* Wrap FoodCourtList in a div and attach the ref */}
       <div ref={foodCourtListRef}>
         {selectedBlock && (
@@ -105,10 +100,8 @@ const Home: FC = () => {
            />
         )}
       </div>
-      {/* Removed Menu component rendering from here */}
     </>
   );
 }
 
 export default Home;
-
