@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { UtensilsCrossed } from "lucide-react";
 import { gsap } from "gsap"; // Import GSAP
+import Image from 'next/image'; // Import Next Image component
 
 const Hero: FC = () => {
   const fullText = "Welcome to Biterush"; // Updated text
@@ -80,26 +81,39 @@ const Hero: FC = () => {
   return (
     <section
       ref={heroRef} // Add ref for GSAP context
-      className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 mb-8 rounded-lg shadow-md overflow-hidden" // Added overflow-hidden
+      className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 mb-8 rounded-lg shadow-md overflow-hidden" // Make section relative for absolute image
     >
-      <div className="container px-4 md:px-6">
+       {/* Background Image */}
+       <Image
+           src="https://picsum.photos/seed/foodcourt/1200/800" // Placeholder image, use a relevant seed
+           alt="University food court background"
+           fill
+           sizes="100vw"
+           priority // Load hero image eagerly
+           className="object-cover z-[-2]" // Position behind content
+       />
+        {/* Overlay for text readability */}
+       <div className="absolute inset-0 bg-black/60 z-[-1]"></div> {/* Semi-transparent black overlay */}
+
+       {/* Content */}
+      <div className="container relative z-10 px-4 md:px-6"> {/* Add relative and z-index to container */}
         <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
           <div className="flex flex-col justify-center space-y-4 text-center lg:text-left">
             <div className="space-y-2">
               {/* Display the dynamically changing text */}
               <h1
                 ref={titleRef} // Add ref for animation
-                className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary min-h-[72px] sm:min-h-[90px] xl:min-h-[120px] invisible" // Start invisible for GSAP
+                className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary-foreground min-h-[72px] sm:min-h-[90px] xl:min-h-[120px] invisible" // Use primary-foreground for light text on dark bg, start invisible
               >
                 {displayedText}
                 {/* Blinking cursor effect - show only while typing */}
                 {index < fullText.length && (
-                    <span className="inline-block w-1 h-8 sm:h-12 xl:h-16 bg-primary animate-pulse ml-1"></span>
+                    <span className="inline-block w-1 h-8 sm:h-12 xl:h-16 bg-primary-foreground animate-pulse ml-1"></span> {/* Use primary-foreground for cursor */}
                 )}
               </h1>
               <p
                 ref={descriptionRef} // Add ref for animation
-                className="max-w-[600px] text-muted-foreground md:text-xl mx-auto lg:mx-0 invisible" // Start invisible for GSAP
+                className="max-w-[600px] text-muted-foreground md:text-xl mx-auto lg:mx-0 invisible" // Keep muted-foreground or use primary-foreground/70, start invisible
               >
                 Order your favorite meals from campus food courts easily and quickly. Skip the lines and enjoy delicious food delivered right where you are.
               </p>
@@ -109,7 +123,7 @@ const Hero: FC = () => {
               className="flex flex-col gap-2 min-[400px]:flex-row justify-center lg:justify-start invisible" // Start invisible for GSAP
             >
               {/* Update button to scroll */}
-               <Button size="lg" onClick={handleGetStartedClick}>
+               <Button size="lg" onClick={handleGetStartedClick} variant="secondary"> {/* Change variant if needed for contrast */}
                  Get Started
                </Button>
             </div>
@@ -117,7 +131,7 @@ const Hero: FC = () => {
           <div className="flex items-center justify-center">
             <UtensilsCrossed
               ref={iconRef} // Add ref for animation
-              className="h-32 w-32 md:h-48 md:w-48 lg:h-64 lg:w-64 text-accent opacity-0 invisible" // Start invisible and opacity 0
+              className="h-32 w-32 md:h-48 md:w-48 lg:h-64 lg:w-64 text-accent opacity-0 invisible" // Keep accent or change color for contrast, start invisible and opacity 0
             />
           </div>
         </div>
