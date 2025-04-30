@@ -22,7 +22,7 @@ const registerSchema = z.object({
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address."),
-  password: z.string().min(1, "Password is required."), // Keep min 1 for login check
+  password: z.string().min(6, "Password is required."), // Keep min 6 for login check
 });
 
 // Define return types for actions
@@ -155,12 +155,16 @@ export async function loginUser(data: z.infer<typeof loginSchema>): Promise<Auth
             // For simulation, we might just check the password directly or assume it's correct
             // Here, we'll assume password 'adminpass' for the admin
             // VERY INSECURE - ONLY FOR SIMULATION
-            if (password === 'adminpass') {
+            const simulatedHashedPassword = await bcrypt.hash('adminpass', 10);
+            const isPasswordCorrect = await bcrypt.compare(password, 'adminpass'); //Directly compare password in dev mode
+
+            if (isPasswordCorrect) {
                  user = {
                     id: 'admin-001',
                     username: 'Admin',
                     email: ADMIN_EMAIL,
                     role: 'admin',
+                    passwordHash: simulatedHashedPassword // Store simualted hased password here
                     // In a real scenario, you'd fetch the admin's password hash and compare
                     // passwordHash: await bcrypt.hash('adminpass', 10) // Example hash
                  };
@@ -171,25 +175,42 @@ export async function loginUser(data: z.infer<typeof loginSchema>): Promise<Auth
          } else if (email === 'test@example.com') {
             // Simulate a regular user - NEED DB lookup and hash comparison in production
             const simulatedHashedPassword = await bcrypt.hash('password123', 10);
-             const isUserPasswordCorrect = await bcrypt.compare(password, simulatedHashedPassword); // Compare against a simulated hash
+            const isPasswordCorrect = await bcrypt.compare(password, 'password123'); //Directly compare password in dev mode
 
-            if(isUserPasswordCorrect) {
+            if(isPasswordCorrect) {
                  user = {
                      id: '123',
                      username: 'testuser',
                      email: 'test@example.com',
                      role: 'user',
+                     passwordHash: simulatedHashedPassword
                  };
                  console.log("Test user login attempt successful (simulated).");
             } else {
                  console.log("Test user login attempt failed: Incorrect password (simulated).");
             }
+         } else{
+           //Simulate password for the registered users to use same password
+           const simulatedHashedPassword = await bcrypt.hash(password, 10);
+           user = {
+             id: Date.now().toString(), // Use actual ID from DB
+             username: "New user", // username,
+             email,
+             role: 'user', // Default role is user
+             passwordHash: simulatedHashedPassword
+            };
          }
         // --- END PLACEHOLDER ---
 
         if (!user) {
              console.log("Login attempt failed: User not found or invalid password for email", email);
             return { success: false, error: "Invalid email or password." }; // Keep error generic
+        }
+        // Verify the password
+         const isPasswordCorrect = await bcrypt.compare(password, user.passwordHash); // Compare the password
+        if(!isPasswordCorrect){
+           console.log("Login attempt failed: Incorrect password for email", email);
+            return { success: false, error: "Invalid email or password." };
         }
 
 
