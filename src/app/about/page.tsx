@@ -5,13 +5,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Building, Users } from 'lucide-react';
 
 const AboutPage: FC = () => {
-  // Dummy data - replace with real info
-  const universityName = "Example University";
+  // Updated university name
+  const universityName = "Lovely Professional University";
+  // Updated creators list
   const creators = [
     { name: "Naaz", avatarUrl: "https://picsum.photos/seed/naaz/100/100" },
     { name: "Rajnikanth", avatarUrl: "https://picsum.photos/seed/rajnikanth/100/100" },
     { name: "Yogesh", avatarUrl: "https://picsum.photos/seed/yogesh/100/100" },
-    { name: "Lokesh", avatarUrl: "https://picsum.photos/seed/lokesh/100/100" },
     { name: "Navpreet", avatarUrl: "https://picsum.photos/seed/navpreet/100/100" },
     // Add more creators if needed
   ];
