@@ -1,4 +1,3 @@
-
 import mongoose, { Schema, Document, models, Model } from 'mongoose';
 
 // Define the interface for the User document
@@ -31,7 +30,8 @@ const UserSchema: Schema<IUser> = new Schema({
     },
     passwordHash: {
         type: String,
-        required: [true, 'Password hash is required.']
+        required: [true, 'Password hash is required.'],
+        select: false // Default behavior: don't select password hash unless explicitly requested
     },
     role: {
         type: String,

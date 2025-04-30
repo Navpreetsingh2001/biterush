@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -20,7 +19,7 @@ import { LogIn } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
-  password: z.string().min(1, { message: "Password is required." }), // Min 1 character for simplicity
+  password: z.string().min(1, { message: "Password is required." }), // Min 1 character for login check
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
