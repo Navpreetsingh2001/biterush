@@ -1,8 +1,9 @@
+
 "use client"; // Add this directive
 
 import type { FC } from 'react';
 import Link from 'next/link';
-import { Utensils, ShoppingCart, Info, LogIn, UserPlus, LogOut } from 'lucide-react'; // Added auth icons
+import { Utensils, ShoppingCart, Info, LogIn, UserPlus, LogOut, ShieldCheck } from 'lucide-react'; // Added auth icons, ShieldCheck for admin
 import { useCart } from '@/context/CartContext'; // Import useCart
 import { useAuth } from '@/context/AuthContext'; // Import useAuth
 import { Badge } from "@/components/ui/badge"; // Import Badge
@@ -14,7 +15,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'; // Import ThemeToggle
 
 const Header: FC = () => {
   const { totalItems: rawTotalItems } = useCart(); // Get totalItems from CartContext
-  const { user, loading, logout } = useAuth(); // Get auth state and logout function
+  const { user, loading, isAdmin, logout } = useAuth(); // Get auth state, isAdmin flag, and logout function
   const { toast } = useToast();
 
   // Memoize totalItems to avoid recalculating unless it actually changes
@@ -41,19 +42,36 @@ const Header: FC = () => {
           <span>Biterush</span> {/* Updated text */}
         </Link>
         <nav className="flex items-center gap-1 md:gap-2"> {/* Use flex and gap for nav items */}
+           {/* Always visible links */}
+           <Link href="/" className="hidden sm:flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">
+                <Utensils className="h-5 w-5" />
+                <span className="hidden sm:inline">Order</span>
+           </Link>
            <Link href="/about" className="flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">
               <Info className="h-5 w-5" />
               <span className="hidden sm:inline">About</span> {/* Hide text on small screens */}
            </Link>
-          <Link href="/cart" className="relative flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90"> {/* Adjusted gap */}
-            <ShoppingCart className="h-6 w-6" />
-            <span className="hidden sm:inline">Cart</span> {/* Hide text on small screens */}
-            {totalItems > 0 && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 px-2 py-0.5 text-xs">
-                {totalItems}
-              </Badge>
+
+            {/* Cart Link - visible to all logged-in users */}
+            {user && (
+                <Link href="/cart" className="relative flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">
+                    <ShoppingCart className="h-6 w-6" />
+                    <span className="hidden sm:inline">Cart</span> {/* Hide text on small screens */}
+                    {totalItems > 0 && (
+                    <Badge variant="destructive" className="absolute -top-2 -right-2 px-2 py-0.5 text-xs">
+                        {totalItems}
+                    </Badge>
+                    )}
+                </Link>
             )}
-          </Link>
+
+           {/* Admin Panel Link - visible only to admins */}
+           {isAdmin && (
+               <Link href="/admin" className="flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">
+                  <ShieldCheck className="h-5 w-5" />
+                  <span className="hidden sm:inline">Admin</span>
+               </Link>
+           )}
 
           {/* Auth Buttons */}
           {loading ? (
@@ -91,3 +109,4 @@ const Header: FC = () => {
 };
 
 export default Header;
+

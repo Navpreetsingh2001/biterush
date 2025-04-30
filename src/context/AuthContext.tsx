@@ -7,13 +7,16 @@ export interface User {
     id: string;
     username: string;
     email: string;
+    role: 'user' | 'admin'; // Add role field
+    passwordHash?: string; // Optional: only needed internally in actions, not stored in context state usually
     // Add other relevant user fields if needed
 }
 
 interface AuthContextType {
-    user: User | null;
+    user: Omit<User, 'passwordHash'> | null; // Exclude passwordHash from context state
     loading: boolean;
-    login: (userData: User) => void;
+    isAdmin: boolean; // Convenience flag for checking admin role
+    login: (userData: Omit<User, 'passwordHash'>) => void;
     logout: () => void;
 }
 
@@ -24,7 +27,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<Omit<User, 'passwordHash'> | null>(null);
     const [loading, setLoading] = useState<boolean>(true); // Start loading until check is done
 
     // Check for persisted user session on initial load (client-side)
@@ -36,9 +39,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 if (storedUser) {
                     try {
                         const parsedUser: unknown = JSON.parse(storedUser);
-                        // Basic validation (improve as needed)
-                        if (typeof parsedUser === 'object' && parsedUser !== null && 'id' in parsedUser && 'username' in parsedUser && 'email' in parsedUser) {
-                            setUser(parsedUser as User);
+                        // Basic validation including role (improve as needed)
+                        if (
+                            typeof parsedUser === 'object' &&
+                            parsedUser !== null &&
+                            'id' in parsedUser && typeof parsedUser.id === 'string' &&
+                            'username' in parsedUser && typeof parsedUser.username === 'string' &&
+                            'email' in parsedUser && typeof parsedUser.email === 'string' &&
+                            'role' in parsedUser && (parsedUser.role === 'user' || parsedUser.role === 'admin') // Check role
+                        ) {
+                            setUser(parsedUser as Omit<User, 'passwordHash'>);
                         } else {
                              localStorage.removeItem('biterushUser'); // Clear invalid data
                         }
@@ -53,7 +63,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         checkUserSession();
     }, []);
 
-    const login = useCallback((userData: User) => {
+    const login = useCallback((userData: Omit<User, 'passwordHash'>) => {
         setUser(userData);
          // Check window existence for SSR safety
         if (typeof window !== 'undefined') {
@@ -70,8 +80,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Optionally clear other sensitive data like cart here
     }, []);
 
+    const isAdmin = user?.role === 'admin';
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, isAdmin, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
@@ -85,3 +97,4 @@ export const useAuth = (): AuthContextType => {
     }
     return context;
 };
+

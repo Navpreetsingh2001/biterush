@@ -8,6 +8,11 @@ import bcrypt from 'bcryptjs'; // For password hashing
 // import prisma from '@/lib/prisma'; // Example for Prisma
 // import { db } from '@/lib/firebase'; // Example for Firebase Firestore
 // import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import type { User } from '@/context/AuthContext'; // Import User type
+
+
+// --- CONSTANTS ---
+const ADMIN_EMAIL = "admin@biterush.com"; // Define the admin email address
 
 // Schemas for validation
 const registerSchema = z.object({
@@ -24,7 +29,7 @@ const loginSchema = z.object({
 // Define return types for actions
 type AuthResult = {
     success: boolean;
-    user?: { id: string; username: string; email: string }; // Return basic user info, not password hash
+    user?: User; // Use the imported User type which includes role
     error?: string;
 };
 
@@ -55,6 +60,11 @@ export async function registerUser(data: z.infer<typeof registerSchema>): Promis
 
         // Placeholder check - REMOVE IN PRODUCTION
         const existingUser = false; // Assume user doesn't exist for now
+         // Prevent admin email registration through the public form (simulation)
+         if (email === ADMIN_EMAIL) {
+             console.log(`Registration attempt failed: Cannot register with admin email (${email}).`);
+             return { success: false, error: "This email address is reserved." };
+         }
         // --- END PLACEHOLDER ---
 
         if (existingUser) {
@@ -67,35 +77,40 @@ export async function registerUser(data: z.infer<typeof registerSchema>): Promis
 
         // --- DATABASE LOGIC: Create the new user ---
         // Replace this section with your actual database insertion
+        // Ensure you store the 'role' field (default to 'user')
         // Example using Prisma:
         // const newUser = await prisma.user.create({
-        //     data: { username, email, passwordHash },
+        //     data: { username, email, passwordHash, role: 'user' },
         // });
         // Example using Firestore:
         // const docRef = await addDoc(collection(db, "users"), {
         //     username,
         //     email,
         //     passwordHash,
+        //     role: 'user', // Add role
         //     createdAt: new Date(), // Add timestamps if desired
         // });
-        // const newUser = { id: docRef.id, username, email }; // Simulate created user data
+        // const newUser = { id: docRef.id, username, email, role: 'user' }; // Simulate created user data
         // --- END DATABASE LOGIC ---
 
         // Placeholder new user - REMOVE IN PRODUCTION
-        const newUser = {
+        const newUser: User = {
              id: Date.now().toString(), // Use actual ID from DB
              username,
              email,
-             passwordHash // Only needed temporarily if not fetching full user below
+             passwordHash, // Only needed temporarily if not fetching full user below
+             role: 'user' // Default role is user
         };
         // --- END PLACEHOLDER ---
 
-        console.log("User registered (simulated):", { id: newUser.id, username: newUser.username, email: newUser.email });
+        console.log("User registered (simulated):", { id: newUser.id, username: newUser.username, email: newUser.email, role: newUser.role });
+
+        // Exclude passwordHash from the returned user object
+        const { passwordHash: _, ...userToReturn } = newUser;
 
         return {
             success: true,
-            // Ensure you return only necessary, non-sensitive user data
-            user: { id: newUser.id, username: newUser.username, email: newUser.email }
+            user: userToReturn
         };
 
     } catch (error) {
@@ -119,46 +134,78 @@ export async function loginUser(data: z.infer<typeof loginSchema>): Promise<Auth
 
         // --- DATABASE LOGIC: Find the user by email ---
         // Replace this section with your actual database query
-        // Ensure you select the passwordHash field
+        // Ensure you select the passwordHash and role fields
         // Example using Prisma:
-        // const user = await prisma.user.findUnique({
+        // const userFromDb = await prisma.user.findUnique({
         //     where: { email },
         // });
         // Example using Firestore:
         // const q = query(collection(db, "users"), where("email", "==", email));
         // const querySnapshot = await getDocs(q);
         // const userDoc = querySnapshot.docs[0]; // Get the first matching doc
-        // const user = userDoc ? { id: userDoc.id, ...userDoc.data() } : null; // Include document ID
+        // const userFromDb = userDoc ? { id: userDoc.id, ...userDoc.data() } : null; // Include document ID
         // --- END DATABASE LOGIC ---
 
         // Placeholder user find - REMOVE IN PRODUCTION
         // This simulates finding a user - you NEED a real DB query here
-        const user: { id: string; username: string; email: string; passwordHash: string } | null = null; // Assume user not found initially
-         // Example: if (email === 'test@example.com') {
-         //    user = { id: '123', username: 'testuser', email: 'test@example.com', passwordHash: await bcrypt.hash('password123', 10) };
-         // }
+        let user: User | null = null; // Explicitly type as User | null
+
+         // Example: Simulate finding a user or the admin user
+         if (email === ADMIN_EMAIL) {
+            // Simulate admin login - IN PRODUCTION, VERIFY PASSWORD FROM DB
+            // For simulation, we might just check the password directly or assume it's correct
+            // Here, we'll assume password 'adminpass' for the admin
+            const isAdminPasswordCorrect = password === 'adminpass'; // VERY INSECURE - ONLY FOR SIMULATION
+            if (isAdminPasswordCorrect) {
+                 user = {
+                    id: 'admin-001',
+                    username: 'Admin',
+                    email: ADMIN_EMAIL,
+                    role: 'admin',
+                    // In a real scenario, you'd fetch the admin's password hash and compare
+                    // passwordHash: await bcrypt.hash('adminpass', 10) // Example hash
+                 };
+                 console.log("Admin login attempt successful (simulated).");
+            } else {
+                 console.log("Admin login attempt failed: Incorrect password (simulated).");
+            }
+         } else if (email === 'test@example.com') {
+            // Simulate a regular user - NEED DB lookup and hash comparison in production
+            const isUserPasswordCorrect = await bcrypt.compare(password, await bcrypt.hash('password123', 10)); // Compare against a simulated hash
+            if(isUserPasswordCorrect) {
+                 user = {
+                     id: '123',
+                     username: 'testuser',
+                     email: 'test@example.com',
+                     role: 'user',
+                     passwordHash: await bcrypt.hash('password123', 10) // Store hash if needed later, but don't return it
+                };
+            }
+         }
         // --- END PLACEHOLDER ---
 
         if (!user) {
-             console.log("Login attempt failed: User not found for email", email);
+             console.log("Login attempt failed: User not found or invalid password for email", email);
             return { success: false, error: "Invalid email or password." }; // Keep error generic
         }
 
-        // Compare the provided password with the stored hash
-        const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isPasswordValid) {
-             console.log("Login attempt failed: Invalid password for email", email);
-            return { success: false, error: "Invalid email or password." }; // Keep error generic
-        }
+        // Password comparison is handled within the simulation block above
+        // If using DB, perform bcrypt.compare here:
+        // const isPasswordValid = await bcrypt.compare(password, userFromDb.passwordHash);
+        // if (!isPasswordValid) {
+        //     console.log("Login attempt failed: Invalid password for email", email);
+        //     return { success: false, error: "Invalid email or password." }; // Keep error generic
+        // }
 
         // Login successful
-         console.log("User logged in:", { id: user.id, username: user.username, email: user.email });
-        // In a real app, you'd typically generate a session token (JWT) here and handle it.
-        // For this context-based auth, we just return user data.
+         console.log("User logged in:", { id: user.id, username: user.username, email: user.email, role: user.role });
+
+        // Exclude passwordHash from the returned user object
+        const { passwordHash: _, ...userToReturn } = user;
+
         return {
             success: true,
-            // Return only necessary, non-sensitive user data
-            user: { id: user.id, username: user.username, email: user.email }
+            user: userToReturn
         };
 
     } catch (error) {
@@ -184,5 +231,3 @@ export async function logoutUser(): Promise<{ success: boolean }> {
          return { success: false }; // Indicate failure, client-side context handles UI update
      }
 }
-
-    
