@@ -1,14 +1,14 @@
+
 "use client";
 
-import type { FC } from 'react'; // Import FC type
+import type { FC } from 'react'; // Restore FC type annotation
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { UtensilsCrossed } from "lucide-react";
 import { gsap } from "gsap"; // Import GSAP
 import Image from 'next/image'; // Import Next Image component
 
-// Restore FC type annotation
-const Hero: FC = () => {
+const Hero: FC = () => { // Add : FC type annotation back
   const fullText = "Welcome to Biterush"; // Updated text
   const [displayedText, setDisplayedText] = useState<string>("");
   const [index, setIndex] = useState<number>(0);
@@ -141,3 +141,4 @@ const Hero: FC = () => {
 };
 
 export default Hero;
+
