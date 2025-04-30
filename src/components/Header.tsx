@@ -1,3 +1,4 @@
+
 "use client"; // Add this directive
 
 import type { FC } from 'react';
@@ -33,12 +34,13 @@ const Header: FC = () => {
       }
     };
 
+    // Memoize the display name based on the user object
     const displayName = useMemo(() => {
         if (!user) return "";
-        // Use actual username if available. If username is "New user", it means it was just created.
-        // Show default "user" if no username is available or if it is "New user".
-        return user.username === "New user" ? "user" : user.username;
+        // Use actual username if available. If username is "New user" or empty, show default "user".
+        return (user.username && user.username !== "New user") ? user.username : "User";
     }, [user]);
+
 
   return (
     <header className="bg-primary text-primary-foreground shadow-md sticky top-0 z-50"> {/* Make header sticky */}
@@ -84,6 +86,7 @@ const Header: FC = () => {
              <div className="h-6 w-20 animate-pulse bg-primary/70 rounded-md"></div> // Skeleton loader
           ) : user ? (
              <div className="flex items-center gap-1 md:gap-2">
+                 {/* Use the calculated displayName here */}
                 <span className="text-sm hidden md:inline">Hi, {displayName}</span>
                 <Button variant="ghost" size="sm" onClick={handleLogout} className="hover:bg-primary/80 p-2">
                      <LogOut className="h-5 w-5 mr-1 md:mr-2" />
