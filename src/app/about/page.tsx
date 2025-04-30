@@ -7,7 +7,7 @@ import { Building, Users } from 'lucide-react';
 const AboutPage: FC = () => {
   // Updated university name
   const universityName = "Lovely Professional University";
-  // Updated creators list
+  // Updated creators list (removed Lokesh)
   const creators = [
     { name: "Naaz", avatarUrl: "https://picsum.photos/seed/naaz/100/100" },
     { name: "Rajnikanth", avatarUrl: "https://picsum.photos/seed/rajnikanth/100/100" },
@@ -24,9 +24,10 @@ const AboutPage: FC = () => {
         {/* University Info Card */}
         <Card>
           <CardHeader>
+            {/* Changed title from "About {universityName}" to just "About" */}
             <CardTitle className="flex items-center gap-2">
               <Building className="h-6 w-6 text-secondary-foreground" />
-              About {universityName}
+              About
             </CardTitle>
           </CardHeader>
           <CardContent>
