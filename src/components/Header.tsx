@@ -43,18 +43,18 @@ const Header: FC = () => {
         </Link>
         <nav className="flex items-center gap-1 md:gap-2"> {/* Use flex and gap for nav items */}
            {/* Always visible links */}
-           <Link href="/" className="hidden sm:flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">
+           <Link href="/" className="hidden sm:flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/90">
                 <Utensils className="h-5 w-5" />
                 <span className="hidden sm:inline">Order</span>
            </Link>
-           <Link href="/about" className="flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">
+           <Link href="/about" className="flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/90">
               <Info className="h-5 w-5" />
               <span className="hidden sm:inline">About</span> {/* Hide text on small screens */}
            </Link>
 
             {/* Cart Link - visible to all logged-in users */}
             {user && (
-                <Link href="/cart" className="relative flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">
+                <Link href="/cart" className="relative flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/90">
                     <ShoppingCart className="h-6 w-6" />
                     <span className="hidden sm:inline">Cart</span> {/* Hide text on small screens */}
                     {totalItems > 0 && (
@@ -67,7 +67,7 @@ const Header: FC = () => {
 
            {/* Admin Panel Link - visible only to admins */}
            {isAdmin && (
-               <Link href="/admin" className="flex items-center gap-1 hover:text-accent transition-colors p-2 rounded-md hover:bg-primary/90">
+               <Link href="/admin" className="flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/90">
                   <ShieldCheck className="h-5 w-5" />
                   <span className="hidden sm:inline">Admin</span>
                </Link>
@@ -79,7 +79,7 @@ const Header: FC = () => {
           ) : user ? (
              <div className="flex items-center gap-1 md:gap-2">
                 <span className="text-sm hidden md:inline">Hi, {user.username}</span>
-                <Button variant="ghost" size="sm" onClick={handleLogout} className="hover:bg-primary/80 hover:text-accent p-2">
+                <Button variant="ghost" size="sm" onClick={handleLogout} className="hover:bg-primary/80 p-2">
                      <LogOut className="h-5 w-5 mr-1 md:mr-2" />
                     <span className="hidden sm:inline">Logout</span>
                  </Button>
@@ -87,13 +87,13 @@ const Header: FC = () => {
           ) : (
             <div className="flex items-center gap-1 md:gap-2">
                <Link href="/login" passHref>
-                  <Button variant="ghost" size="sm" className="hover:bg-primary/80 hover:text-accent p-2">
+                  <Button variant="ghost" size="sm" className="hover:bg-primary/80 p-2">
                      <LogIn className="h-5 w-5 mr-1 md:mr-2" />
                      <span className="hidden sm:inline">Login</span>
                   </Button>
                </Link>
                 <Link href="/register" passHref>
-                   <Button variant="ghost" size="sm" className="hover:bg-primary/80 hover:text-accent p-2">
+                   <Button variant="ghost" size="sm" className="hover:bg-primary/80 p-2">
                        <UserPlus className="h-5 w-5 mr-1 md:mr-2"/>
                       <span className="hidden sm:inline">Register</span>
                    </Button>
