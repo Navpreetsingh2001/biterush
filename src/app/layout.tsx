@@ -22,7 +22,8 @@ export default function RootLayout({
 }>) {
   return (
     // Removed GeistSans.variable and GeistMono.variable from className
-    <html lang="en" className="h-full" suppressHydrationWarning> {/* suppressHydrationWarning for next-themes */}
+    // Ensure no whitespace directly inside <html> before <head>
+    <html lang="en" className="h-full" suppressHydrationWarning>
        <head>
          {/* Preconnect to external domains used for critical resources */}
          <link rel="preconnect" href="https://picsum.photos" />
