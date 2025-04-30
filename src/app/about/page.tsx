@@ -9,10 +9,10 @@ const AboutPage: FC = () => {
   const universityName = "Lovely Professional University";
   // Updated creators list (removed Lokesh)
   const creators = [
-    { name: "Naaz", avatarUrl: "https://picsum.photos/seed/naaz/100/100" },
-    { name: "Rajnikanth", avatarUrl: "https://picsum.photos/seed/rajnikanth/100/100" },
-    { name: "Yogesh", avatarUrl: "https://picsum.photos/seed/yogesh/100/100" },
-    { name: "Navpreet", avatarUrl: "https://picsum.photos/seed/navpreet/100/100" },
+    { name: "Naaz", avatarUrl: "https://picsum.photos/seed/naaz/100/100", fallback: "N" },
+    { name: "Rajnikanth", avatarUrl: "https://picsum.photos/seed/rajnikanth/100/100", fallback: "R" },
+    { name: "Yogesh", avatarUrl: "https://picsum.photos/seed/yogesh/100/100", fallback: "Y" },
+    { name: "Navpreet", avatarUrl: "https://picsum.photos/seed/navpreet/100/100", fallback: "NA" },
     // Add more creators if needed
   ];
 
@@ -58,8 +58,8 @@ const AboutPage: FC = () => {
                 <div key={index} className="flex flex-col items-center gap-2">
                   <Avatar className="h-16 w-16">
                     <AvatarImage src={creator.avatarUrl} alt={creator.name} />
-                    {/* Generate fallback from the first two letters if available, else first letter */}
-                    <AvatarFallback>{creator.name.length > 1 ? creator.name.substring(0, 2).toUpperCase() : creator.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    {/* Use the specified fallback */}
+                    <AvatarFallback>{creator.fallback}</AvatarFallback>
                   </Avatar>
                   <p className="text-sm font-medium">{creator.name}</p>
                 </div>
@@ -74,3 +74,4 @@ const AboutPage: FC = () => {
 };
 
 export default AboutPage;
+
