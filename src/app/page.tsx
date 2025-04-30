@@ -51,8 +51,8 @@ const Home: FC = () => {
         .then(data => {
           setFoodCourts(data);
           setIsLoadingFoodCourts(false);
-          // Scroll after data is loaded and feedback section is rendered
-          // Consider a slight delay to ensure FeedbackSection is in the DOM if it appears conditionally
+          // Scroll after data is loaded
+          // Consider a slight delay to ensure elements are in the DOM
           setTimeout(() => {
              if (foodCourtListRef.current && typeof window !== 'undefined' && !window.location.hash) {
                 foodCourtListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -87,9 +87,6 @@ const Home: FC = () => {
         />
       </div>
 
-      {/* Add the Feedback Section here */}
-      <FeedbackSection />
-
       {/* Wrap FoodCourtList in a div and attach the ref */}
       <div ref={foodCourtListRef}>
         {selectedBlock && (
@@ -100,6 +97,9 @@ const Home: FC = () => {
            />
         )}
       </div>
+
+       {/* Move the Feedback Section here, to be rendered last in the main content */}
+       <FeedbackSection />
     </>
   );
 }
