@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -75,19 +74,21 @@ const BlockSelection: FC<BlockSelectionProps> = ({ onBlockSelect, selectedBlock 
             style={{ transformOrigin: 'center center' }} // Set transform origin for scaling
           >
             <CardContent className="p-0">
+              {/* Container for the Image */}
               <div className="aspect-square relative w-full">
                 <Image
                   // Use different placeholder images for each block
-                  src={`https://picsum.photos/seed/${index + 10}/300/300`}
+                  src={`https://picsum.photos/seed/${index + 10}/300/300`} // Seed ensures somewhat consistent images per block
                   alt={`Image representing ${block}`}
-                  fill
-                  sizes="(max-width: 640px) 50vw, 25vw" // Responsive image sizes
-                  className="object-cover"
-                  priority={index < 4} // Prioritize loading images for the first few blocks (LCP)
+                  fill // Makes the image fill the container
+                  sizes="(max-width: 640px) 50vw, 25vw" // Define responsive image sizes
+                  className="object-cover" // Ensure image covers the container area
+                  priority={index < 4} // Prioritize loading images for the first few blocks (LCP improvement)
                   loading={index < 4 ? 'eager' : 'lazy'} // Load first few eagerly, others lazily
                 />
               </div>
             </CardContent>
+            {/* Keep footer for the block name */}
             <CardFooter className="p-3 bg-muted/50 justify-center">
               <p className="font-medium text-center text-sm text-foreground">{block}</p>
             </CardFooter>
@@ -99,4 +100,3 @@ const BlockSelection: FC<BlockSelectionProps> = ({ onBlockSelect, selectedBlock 
 };
 
 export default BlockSelection;
-
