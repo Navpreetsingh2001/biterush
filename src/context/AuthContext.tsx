@@ -7,7 +7,8 @@ export interface User {
     id: string;
     username: string;
     email: string;
-    role: 'user' | 'admin'; // Add role field
+    // Updated role to include superAdmin and vendor
+    role: 'user' | 'admin' | 'superAdmin' | 'vendor';
     passwordHash?: string; // Optional: only needed internally in actions, not stored in context state usually
     // Add other relevant user fields if needed
 }
@@ -16,6 +17,8 @@ interface AuthContextType {
     user: Omit<User, 'passwordHash'> | null; // Exclude passwordHash from context state
     loading: boolean;
     isAdmin: boolean; // Convenience flag for checking admin role
+    isSuperAdmin: boolean; // Convenience flag for checking superAdmin role
+    isVendor: boolean; // Convenience flag for checking vendor role
     login: (userData: Omit<User, 'passwordHash'>) => void;
     logout: () => void;
 }
@@ -46,7 +49,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                             'id' in parsedUser && typeof parsedUser.id === 'string' &&
                             'username' in parsedUser && typeof parsedUser.username === 'string' &&
                             'email' in parsedUser && typeof parsedUser.email === 'string' &&
-                            'role' in parsedUser && (parsedUser.role === 'user' || parsedUser.role === 'admin') // Check role
+                            'role' in parsedUser &&
+                            // Updated role check
+                            (parsedUser.role === 'user' || parsedUser.role === 'admin' || parsedUser.role === 'superAdmin' || parsedUser.role === 'vendor')
                         ) {
                             setUser(parsedUser as Omit<User, 'passwordHash'>);
                         } else {
@@ -81,9 +86,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     const isAdmin = user?.role === 'admin';
+    const isSuperAdmin = user?.role === 'superAdmin';
+    const isVendor = user?.role === 'vendor';
 
     return (
-        <AuthContext.Provider value={{ user, loading, isAdmin, login, logout }}>
+        // Pass new flags to context value
+        <AuthContext.Provider value={{ user, loading, isAdmin, isSuperAdmin, isVendor, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

@@ -9,26 +9,22 @@ import { Loader2, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-interface AdminLayoutProps {
+interface VendorLayoutProps {
   children: ReactNode;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
-  // Get isSuperAdmin flag as well
-  const { user, isAdmin, isSuperAdmin, loading } = useAuth();
+export default function VendorLayout({ children }: VendorLayoutProps) {
+  // Check if user is specifically a vendor
+  const { user, isVendor, loading } = useAuth();
   const router = useRouter();
 
-  // Determine if user has admin privileges (either admin or superAdmin)
-  const hasAdminAccess = isAdmin || isSuperAdmin;
-
   useEffect(() => {
-    // Redirect non-admins or logged-out users away from admin pages
-    // Updated check to use hasAdminAccess
-    if (!loading && !hasAdminAccess) {
-      console.warn("Access denied: User does not have admin or superAdmin privileges. Redirecting...");
+    // Redirect non-vendors or logged-out users
+    if (!loading && !isVendor) {
+      console.warn("Access denied: User is not a vendor. Redirecting...");
       router.push('/'); // Redirect to homepage or login page
     }
-  }, [user, hasAdminAccess, loading, router]);
+  }, [user, isVendor, loading, router]);
 
   if (loading) {
     return (
@@ -39,14 +35,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  // Updated check to use hasAdminAccess
-  if (!hasAdminAccess) {
-    // Show an access denied message briefly before redirect happens (or if redirect fails)
+  if (!isVendor) {
+    // Show an access denied message
     return (
        <div className="flex flex-col justify-center items-center min-h-screen text-center p-4">
             <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
             <h1 className="text-2xl font-bold text-destructive mb-2">Access Denied</h1>
-            <p className="text-muted-foreground mb-6">You do not have permission to access this page.</p>
+            <p className="text-muted-foreground mb-6">You do not have permission to access the vendor dashboard.</p>
             <Link href="/" passHref>
                 <Button variant="outline">Go to Homepage</Button>
             </Link>
@@ -54,7 +49,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  // If loading is complete and user is admin/superAdmin, render the children
+  // If loading is complete and user is a vendor, render the children
   return <>{children}</>;
 }
-

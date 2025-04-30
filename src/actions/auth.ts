@@ -1,3 +1,4 @@
+
 "use server";
 
 import { z } from 'zod';
@@ -7,11 +8,14 @@ import bcrypt from 'bcryptjs'; // For password hashing
 // import prisma from '@/lib/prisma'; // Example for Prisma
 // import { db } from '@/lib/firebase'; // Example for Firebase Firestore
 // import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
-import type { User } from '@/context/AuthContext'; // Import User type
-
+// Update User type import to potentially use the one from AuthContext if needed
+import type { User } from '@/context/AuthContext'; // Import User type which includes role
 
 // --- CONSTANTS ---
 const ADMIN_EMAIL = "admin@biterush.com"; // Define the admin email address
+const SUPER_ADMIN_EMAIL = "superadmin@biterush.com"; // Define the super admin email
+const VENDOR_EMAIL = "vendor@biterush.com"; // Define a vendor email
+
 
 // Schemas for validation
 const registerSchema = z.object({
@@ -28,11 +32,13 @@ const loginSchema = z.object({
 // Define return types for actions
 type AuthResult = {
     success: boolean;
-    user?: User; // Use the imported User type which includes role
+    user?: User; // Use the imported User type which includes updated roles
     error?: string;
 };
 
 // --- REGISTER ACTION ---
+// Note: Public registration always creates a 'user' role.
+// Other roles (admin, superAdmin, vendor) should be assigned through a separate process (e.g., an admin panel).
 export async function registerUser(data: z.infer<typeof registerSchema>): Promise<AuthResult> {
     try {
         const validation = registerSchema.safeParse(data);
@@ -59,9 +65,9 @@ export async function registerUser(data: z.infer<typeof registerSchema>): Promis
 
         // Placeholder check - REMOVE IN PRODUCTION
         const existingUser = false; // Assume user doesn't exist for now
-         // Prevent admin email registration through the public form (simulation)
-         if (email === ADMIN_EMAIL) {
-             console.log(`Registration attempt failed: Cannot register with admin email (${email}).`);
+         // Prevent reserved email registration through the public form (simulation)
+         if ([ADMIN_EMAIL, SUPER_ADMIN_EMAIL, VENDOR_EMAIL].includes(email)) {
+             console.log(`Registration attempt failed: Cannot register with reserved email (${email}).`);
              return { success: false, error: "This email address is reserved." };
          }
         // --- END PLACEHOLDER ---
@@ -98,7 +104,7 @@ export async function registerUser(data: z.infer<typeof registerSchema>): Promis
              username,
              email,
              passwordHash, // Only needed temporarily if not fetching full user below
-             role: 'user' // Default role is user
+             role: 'user' // Default role is user for public registration
         };
         // --- END PLACEHOLDER ---
 
@@ -149,56 +155,71 @@ export async function loginUser(data: z.infer<typeof loginSchema>): Promise<Auth
         // This simulates finding a user - you NEED a real DB query here
         let user: User | null = null; // Explicitly type as User | null
 
-         // Example: Simulate finding a user or the admin user
-         if (email === ADMIN_EMAIL) {
-            // Simulate admin login - IN PRODUCTION, VERIFY PASSWORD FROM DB
-            // For simulation, we might just check the password directly or assume it's correct
-            // Here, we'll assume password 'adminpass' for the admin
-            // VERY INSECURE - ONLY FOR SIMULATION
-            const simulatedHashedPassword = await bcrypt.hash('adminpass', 10);
-            const isPasswordCorrect = await bcrypt.compare(password, 'adminpass'); //Directly compare password in dev mode
+         // Example: Simulate finding different roles
+         // VERY INSECURE - ONLY FOR SIMULATION - Use database lookups and bcrypt.compare in production
+         const isPasswordCorrect = async (simulatedPassword: string) => {
+             // In production: Fetch user.passwordHash from DB and compare:
+             // return await bcrypt.compare(password, user.passwordHash);
+             // For simulation, compare directly:
+             return password === simulatedPassword;
+         };
 
-            if (isPasswordCorrect) {
-                 user = {
-                    id: 'admin-001',
-                    username: 'Admin',
-                    email: ADMIN_EMAIL,
-                    role: 'admin',
-                    passwordHash: simulatedHashedPassword // Store simualted hased password here
-                    // In a real scenario, you'd fetch the admin's password hash and compare
-                    // passwordHash: await bcrypt.hash('adminpass', 10) // Example hash
-                 };
-                 console.log("Admin login attempt successful (simulated).");
-            } else {
-                 console.log("Admin login attempt failed: Incorrect password (simulated).");
-            }
-         } else if (email === 'test@example.com') {
-            // Simulate a regular user - NEED DB lookup and hash comparison in production
-            const simulatedHashedPassword = await bcrypt.hash('password123', 10);
-            const isPasswordCorrect = await bcrypt.compare(password, 'password123'); //Directly compare password in dev mode
+         const getSimulatedHash = async (simulatedPassword: string) => {
+            // Only needed for simulation, real DB has hash
+            return await bcrypt.hash(simulatedPassword, 10);
+         }
 
-            if(isPasswordCorrect) {
-                 user = {
-                     id: '123',
-                     username: 'testuser',
-                     email: 'test@example.com',
-                     role: 'user',
-                     passwordHash: simulatedHashedPassword
-                 };
-                 console.log("Test user login attempt successful (simulated).");
-            } else {
-                 console.log("Test user login attempt failed: Incorrect password (simulated).");
+         if (email === SUPER_ADMIN_EMAIL && await isPasswordCorrect('superpass')) {
+            user = {
+                id: 'super-001',
+                username: 'Super Admin',
+                email: SUPER_ADMIN_EMAIL,
+                role: 'superAdmin',
+                passwordHash: await getSimulatedHash('superpass')
+             };
+             console.log("Super Admin login attempt successful (simulated).");
+         } else if (email === ADMIN_EMAIL && await isPasswordCorrect('adminpass')) {
+             user = {
+                id: 'admin-001',
+                username: 'Admin',
+                email: ADMIN_EMAIL,
+                role: 'admin',
+                passwordHash: await getSimulatedHash('adminpass')
+             };
+             console.log("Admin login attempt successful (simulated).");
+         } else if (email === VENDOR_EMAIL && await isPasswordCorrect('vendorpass')) {
+             user = {
+                 id: 'vendor-001',
+                 username: 'Food Vendor',
+                 email: VENDOR_EMAIL,
+                 role: 'vendor',
+                 passwordHash: await getSimulatedHash('vendorpass')
+             };
+             console.log("Vendor login attempt successful (simulated).");
+         } else if (email === 'test@example.com' && await isPasswordCorrect('password123')) {
+             user = {
+                 id: '123',
+                 username: 'testuser',
+                 email: 'test@example.com',
+                 role: 'user',
+                 passwordHash: await getSimulatedHash('password123')
+             };
+             console.log("Test user login attempt successful (simulated).");
+         } else {
+            // Simulate login for any other registered user (using their chosen password)
+            // !!! In a real app: Lookup user by email in DB first !!!
+            // Assume user exists if not one of the special emails above (for simulation)
+            const isRegisteredUserPasswordCorrect = await isPasswordCorrect(password); // Simulate check with the provided password
+            if (isRegisteredUserPasswordCorrect) {
+                user = {
+                    id: Date.now().toString(), // Use actual ID from DB
+                    username: "New user", // Fetch actual username from DB
+                    email,
+                    role: 'user', // Fetch actual role from DB
+                    passwordHash: await getSimulatedHash(password) // Fetch actual hash from DB
+                };
+                console.log("Registered user login attempt successful (simulated for email):", email);
             }
-         } else{
-           //Simulate password for the registered users to use same password
-           const simulatedHashedPassword = await bcrypt.hash(password, 10);
-           user = {
-             id: Date.now().toString(), // Use actual ID from DB
-             username: "New user", // username,
-             email,
-             role: 'user', // Default role is user
-             passwordHash: simulatedHashedPassword
-            };
          }
         // --- END PLACEHOLDER ---
 
@@ -206,12 +227,13 @@ export async function loginUser(data: z.infer<typeof loginSchema>): Promise<Auth
              console.log("Login attempt failed: User not found or invalid password for email", email);
             return { success: false, error: "Invalid email or password." }; // Keep error generic
         }
-        // Verify the password
-         const isPasswordCorrect = await bcrypt.compare(password, user.passwordHash); // Compare the password
-        if(!isPasswordCorrect){
-           console.log("Login attempt failed: Incorrect password for email", email);
-            return { success: false, error: "Invalid email or password." };
-        }
+
+        // Verify the password (already simulated above, real check needed here in production)
+        // const isPasswordCorrectInDb = await bcrypt.compare(password, user.passwordHash);
+        // if(!isPasswordCorrectInDb){
+        //    console.log("Login attempt failed: Incorrect password for email", email);
+        //     return { success: false, error: "Invalid email or password." };
+        // }
 
 
         // Login successful
@@ -248,3 +270,4 @@ export async function logoutUser(): Promise<{ success: boolean }> {
          return { success: false }; // Indicate failure, client-side context handles UI update
      }
 }
+

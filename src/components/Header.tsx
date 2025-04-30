@@ -3,7 +3,7 @@
 
 import type { FC } from 'react';
 import Link from 'next/link';
-import { Utensils, ShoppingCart, Info, LogIn, UserPlus, LogOut, ShieldCheck } from 'lucide-react'; // Added auth icons, ShieldCheck for admin
+import { Utensils, ShoppingCart, Info, LogIn, UserPlus, LogOut, ShieldCheck, UserCog, Truck } from 'lucide-react'; // Added auth icons, ShieldCheck/UserCog for admin/superAdmin, Truck for vendor
 import { useCart } from '@/context/CartContext'; // Import useCart
 import { useAuth } from '@/context/AuthContext'; // Import useAuth
 import { Badge } from "@/components/ui/badge"; // Import Badge
@@ -15,11 +15,15 @@ import { ThemeToggle } from '@/components/ThemeToggle'; // Import ThemeToggle
 
 const Header: FC = () => {
   const { totalItems: rawTotalItems } = useCart(); // Get totalItems from CartContext
-  const { user, loading, isAdmin, logout } = useAuth(); // Get auth state, isAdmin flag, and logout function
+  // Get additional role flags
+  const { user, loading, isAdmin, isSuperAdmin, isVendor, logout } = useAuth();
   const { toast } = useToast();
 
   // Memoize totalItems to avoid recalculating unless it actually changes
   const totalItems = useMemo(() => rawTotalItems, [rawTotalItems]);
+
+  // Determine if user has any kind of admin access
+  const hasAdminAccess = isAdmin || isSuperAdmin;
 
   const handleLogout = async () => {
       try {
@@ -38,8 +42,15 @@ const Header: FC = () => {
     const displayName = useMemo(() => {
         if (!user) return "";
         // Use actual username if available. If username is "New user" or empty, show default "user".
-        return (user.username && user.username !== "New user") ? user.username : "User";
-    }, [user]);
+        // Add check for specific roles to show role name if username is generic
+        if (user.username && user.username !== "New user") {
+             return user.username;
+        }
+        if(isSuperAdmin) return "Super Admin";
+        if(isAdmin) return "Admin";
+        if(isVendor) return "Vendor";
+        return "User";
+    }, [user, isAdmin, isSuperAdmin, isVendor]);
 
 
   return (
@@ -51,18 +62,18 @@ const Header: FC = () => {
         </Link>
         <nav className="flex items-center gap-1 md:gap-2"> {/* Use flex and gap for nav items */}
            {/* Always visible links */}
-           <Link href="/" className="hidden sm:flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/90">
+           <Link href="/" className="hidden sm:flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/80 hover:text-primary-foreground">
                 <Utensils className="h-5 w-5" />
                 <span className="hidden sm:inline">Order</span>
            </Link>
-           <Link href="/about" className="flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/90">
+           <Link href="/about" className="flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/80 hover:text-primary-foreground">
               <Info className="h-5 w-5" />
               <span className="hidden sm:inline">About</span> {/* Hide text on small screens */}
            </Link>
 
             {/* Cart Link - visible to all logged-in users */}
             {user && (
-                <Link href="/cart" className="relative flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/90">
+                <Link href="/cart" className="relative flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/80 hover:text-primary-foreground">
                     <ShoppingCart className="h-6 w-6" />
                     <span className="hidden sm:inline">Cart</span> {/* Hide text on small screens */}
                     {totalItems > 0 && (
@@ -73,13 +84,23 @@ const Header: FC = () => {
                 </Link>
             )}
 
-           {/* Admin Panel Link - visible only to admins */}
-           {isAdmin && (
-               <Link href="/admin" className="flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/90">
-                  <ShieldCheck className="h-5 w-5" />
+           {/* Admin Panel Link - visible only to admin or superAdmin */}
+           {hasAdminAccess && (
+               <Link href="/admin" className="flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/80 hover:text-primary-foreground">
+                  {/* Use different icon for superAdmin? */}
+                  {isSuperAdmin ? <UserCog className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
                   <span className="hidden sm:inline">Admin</span>
                </Link>
            )}
+
+           {/* Vendor Panel Link (Example) - visible only to vendors */}
+            {isVendor && (
+                <Link href="/vendor" className="flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/80 hover:text-primary-foreground">
+                    <Truck className="h-5 w-5" /> {/* Example icon */}
+                    <span className="hidden sm:inline">Vendor</span>
+                </Link>
+            )}
+
 
           {/* Auth Buttons */}
           {loading ? (
@@ -88,7 +109,7 @@ const Header: FC = () => {
              <div className="flex items-center gap-1 md:gap-2">
                  {/* Use the calculated displayName here */}
                 <span className="text-sm hidden md:inline">Hi, {displayName}</span>
-                <Button variant="ghost" size="sm" onClick={handleLogout} className="hover:bg-primary/80 p-2">
+                <Button variant="ghost" size="sm" onClick={handleLogout} className="hover:bg-primary/80 hover:text-primary-foreground p-2">
                      <LogOut className="h-5 w-5 mr-1 md:mr-2" />
                     <span className="hidden sm:inline">Logout</span>
                  </Button>
@@ -96,13 +117,13 @@ const Header: FC = () => {
           ) : (
             <div className="flex items-center gap-1 md:gap-2">
                <Link href="/login" passHref>
-                  <Button variant="ghost" size="sm" className="hover:bg-primary/80 p-2">
+                  <Button variant="ghost" size="sm" className="hover:bg-primary/80 hover:text-primary-foreground p-2">
                      <LogIn className="h-5 w-5 mr-1 md:mr-2" />
                      <span className="hidden sm:inline">Login</span>
                   </Button>
                </Link>
                 <Link href="/register" passHref>
-                   <Button variant="ghost" size="sm" className="hover:bg-primary/80 p-2">
+                   <Button variant="ghost" size="sm" className="hover:bg-primary/80 hover:text-primary-foreground p-2">
                        <UserPlus className="h-5 w-5 mr-1 md:mr-2"/>
                       <span className="hidden sm:inline">Register</span>
                    </Button>
@@ -118,3 +139,4 @@ const Header: FC = () => {
 };
 
 export default Header;
+
