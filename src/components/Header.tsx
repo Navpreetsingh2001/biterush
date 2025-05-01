@@ -3,7 +3,7 @@
 
 import type { FC } from 'react';
 import Link from 'next/link';
-import { Utensils, ShoppingCart, Info, LogIn, UserPlus, LogOut, ShieldCheck, UserCog, Truck } from 'lucide-react'; // Added auth icons, ShieldCheck/UserCog for admin/superAdmin, Truck for vendor
+import { Utensils, ShoppingCart, Info, LogIn, UserPlus, LogOut, UserCog, Store, ShieldCheck } from 'lucide-react'; // Added UserCog for SuperAdmin, Store for Vendor
 import { useCart } from '@/context/CartContext'; // Import useCart
 import { useAuth } from '@/context/AuthContext'; // Import useAuth
 import { Badge } from "@/components/ui/badge"; // Import Badge
@@ -15,15 +15,18 @@ import { ThemeToggle } from '@/components/ThemeToggle'; // Import ThemeToggle
 
 const Header: FC = () => {
   const { totalItems: rawTotalItems } = useCart(); // Get totalItems from CartContext
-  // Get additional role flags
+  // Get user, loading state, and specific role flags
   const { user, loading, isAdmin, isSuperAdmin, isVendor, logout } = useAuth();
   const { toast } = useToast();
 
   // Memoize totalItems to avoid recalculating unless it actually changes
   const totalItems = useMemo(() => rawTotalItems, [rawTotalItems]);
 
-  // Determine if user has any kind of admin access
-  const hasAdminAccess = isAdmin || isSuperAdmin;
+  // Determine if user has Super Admin access
+  const hasSuperAdminAccess = isSuperAdmin;
+  // Determine if user has Vendor access
+  const hasVendorAccess = isVendor;
+   // Note: 'isAdmin' might be less relevant now or used for specific, non-super admin tasks.
 
   const handleLogout = async () => {
       try {
@@ -38,18 +41,19 @@ const Header: FC = () => {
       }
     };
 
-    // Memoize the display name based on the user object
+    // Memoize the display name based on the user object and roles
     const displayName = useMemo(() => {
         if (!user) return "";
-        // Use actual username if available. If username is "New user" or empty, show default "user".
-        // Add check for specific roles to show role name if username is generic
+        // Use actual username if available and not generic placeholder
         if (user.username && user.username !== "New user") {
              return user.username;
         }
+        // If username is generic, show role name for special roles
         if(isSuperAdmin) return "Super Admin";
-        if(isAdmin) return "Admin";
         if(isVendor) return "Vendor";
-        return "User";
+        // Fallback for generic user or admin role (if admin role still used)
+        if(isAdmin) return "Admin"; // Or just "User" if 'admin' role is deprecated
+        return "User"; // Default for regular users
     }, [user, isAdmin, isSuperAdmin, isVendor]);
 
 
@@ -84,31 +88,30 @@ const Header: FC = () => {
                 </Link>
             )}
 
-           {/* Admin Panel Link - visible only to admin or superAdmin */}
-           {hasAdminAccess && (
+           {/* Super Admin Panel Link - visible only to Super Admin */}
+           {hasSuperAdminAccess && (
                <Link href="/admin" className="flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/80 hover:text-primary-foreground">
-                  {/* Use different icon for superAdmin? */}
-                  {isSuperAdmin ? <UserCog className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
-                  <span className="hidden sm:inline">Admin</span>
+                  <UserCog className="h-5 w-5" />
+                  <span className="hidden sm:inline">Super Admin</span>
                </Link>
            )}
 
-           {/* Vendor Panel Link (Example) - visible only to vendors */}
-            {isVendor && (
+           {/* Vendor Panel Link - visible only to Vendors */}
+            {hasVendorAccess && (
                 <Link href="/vendor" className="flex items-center gap-1 transition-colors p-2 rounded-md hover:bg-primary/80 hover:text-primary-foreground">
-                    <Truck className="h-5 w-5" /> {/* Example icon */}
-                    <span className="hidden sm:inline">Vendor</span>
+                    <Store className="h-5 w-5" />
+                    <span className="hidden sm:inline">Vendor Dashboard</span>
                 </Link>
             )}
 
 
           {/* Auth Buttons */}
           {loading ? (
-             <div className="h-6 w-20 animate-pulse bg-primary/70 rounded-md"></div> // Skeleton loader
+             <div className="h-9 w-28 animate-pulse bg-primary/70 rounded-md"></div> // Skeleton loader for auth state
           ) : user ? (
              <div className="flex items-center gap-1 md:gap-2">
                  {/* Use the calculated displayName here */}
-                <span className="text-sm hidden md:inline">Hi, {displayName}</span>
+                <span className="text-sm hidden md:inline font-medium">Hi, {displayName}</span>
                 <Button variant="ghost" size="sm" onClick={handleLogout} className="hover:bg-primary/80 hover:text-primary-foreground p-2">
                      <LogOut className="h-5 w-5 mr-1 md:mr-2" />
                     <span className="hidden sm:inline">Logout</span>
@@ -139,4 +142,3 @@ const Header: FC = () => {
 };
 
 export default Header;
-

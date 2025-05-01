@@ -1,3 +1,4 @@
+
 import mongoose, { Schema, Document, models, Model } from 'mongoose';
 
 // Define the interface for the User document
@@ -5,6 +6,7 @@ export interface IUser extends Document {
     username: string;
     email: string;
     passwordHash: string;
+    // Updated roles
     role: 'user' | 'admin' | 'superAdmin' | 'vendor';
     createdAt: Date;
     updatedAt: Date;
@@ -35,6 +37,7 @@ const UserSchema: Schema<IUser> = new Schema({
     },
     role: {
         type: String,
+        // Updated enum to include new roles
         enum: ['user', 'admin', 'superAdmin', 'vendor'],
         default: 'user'
     }

@@ -1,24 +1,29 @@
+
 "use client";
 
 import React, { createContext, useState, useContext, useEffect, type ReactNode, useCallback } from 'react';
 
+// Define the User type used within the context and potentially returned by actions
+// Make sure this aligns with the user object structure returned by your auth actions
 export interface User {
     id: string;
     username: string;
     email: string;
     // Updated role to include superAdmin and vendor
     role: 'user' | 'admin' | 'superAdmin' | 'vendor';
-    passwordHash?: string; // Optional: only needed internally in actions, not stored in context state usually
-    // Add other relevant user fields if needed
+    // passwordHash should generally NOT be part of the client-side user object
+    // Add other relevant user fields if needed (e.g., profile picture URL)
 }
 
+
 interface AuthContextType {
-    user: Omit<User, 'passwordHash'> | null; // Exclude passwordHash from context state
+    // User object will not contain passwordHash
+    user: User | null;
     loading: boolean;
-    isAdmin: boolean; // Convenience flag for checking admin role
-    isSuperAdmin: boolean; // Convenience flag for checking superAdmin role
-    isVendor: boolean; // Convenience flag for checking vendor role
-    login: (userData: Omit<User, 'passwordHash'>) => void;
+    isAdmin: boolean; // Flag for admin role
+    isSuperAdmin: boolean; // Flag for superAdmin role
+    isVendor: boolean; // Flag for vendor role
+    login: (userData: User) => void;
     logout: () => void;
 }
 
@@ -29,7 +34,8 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const [user, setUser] = useState<Omit<User, 'passwordHash'> | null>(null);
+    // State holds the User object (without passwordHash)
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true); // Start loading until check is done
 
     // Check for persisted user session on initial load (client-side)
@@ -42,6 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     try {
                         const parsedUser: unknown = JSON.parse(storedUser);
                         // Basic validation including role (improve as needed)
+                        // Ensure all expected fields are present and have the correct type
                         if (
                             typeof parsedUser === 'object' &&
                             parsedUser !== null &&
@@ -52,8 +59,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                             // Updated role check
                             (parsedUser.role === 'user' || parsedUser.role === 'admin' || parsedUser.role === 'superAdmin' || parsedUser.role === 'vendor')
                         ) {
-                            setUser(parsedUser as Omit<User, 'passwordHash'>);
+                            // Ensure no passwordHash is accidentally stored/retrieved
+                            const { passwordHash, ...safeUser } = parsedUser as any;
+                            setUser(safeUser as User); // Cast to User after validation
                         } else {
+                             console.warn("Invalid user data structure in localStorage. Clearing.");
                              localStorage.removeItem('biterushUser'); // Clear invalid data
                         }
                     } catch (error) {
@@ -67,11 +77,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         checkUserSession();
     }, []);
 
-    const login = useCallback((userData: Omit<User, 'passwordHash'>) => {
-        setUser(userData);
+    // Login function now expects a User object (without passwordHash)
+    const login = useCallback((userData: User) => {
+        // Ensure passwordHash is not stored in state or localStorage
+        const { passwordHash, ...safeUserData } = userData as any;
+        setUser(safeUserData);
          // Check window existence for SSR safety
         if (typeof window !== 'undefined') {
-            localStorage.setItem('biterushUser', JSON.stringify(userData));
+            localStorage.setItem('biterushUser', JSON.stringify(safeUserData));
+            console.log("User stored in localStorage:", safeUserData);
         }
     }, []);
 
@@ -80,10 +94,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
          // Check window existence for SSR safety
         if (typeof window !== 'undefined') {
             localStorage.removeItem('biterushUser');
+            console.log("User removed from localStorage.");
         }
         // Optionally clear other sensitive data like cart here
     }, []);
 
+    // Calculate role flags based on the user state
     const isAdmin = user?.role === 'admin';
     const isSuperAdmin = user?.role === 'superAdmin';
     const isVendor = user?.role === 'vendor';

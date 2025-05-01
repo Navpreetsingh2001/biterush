@@ -13,6 +13,7 @@ interface VendorLayoutProps {
   children: ReactNode;
 }
 
+// This layout protects routes under /vendor specifically for the VENDOR role.
 export default function VendorLayout({ children }: VendorLayoutProps) {
   // Check if user is specifically a vendor
   const { user, isVendor, loading } = useAuth();
@@ -30,7 +31,7 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="ml-2">Verifying access...</p>
+        <p className="ml-2">Verifying vendor access...</p>
       </div>
     );
   }

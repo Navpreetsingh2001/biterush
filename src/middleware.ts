@@ -1,9 +1,10 @@
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Define routes that require authentication (client-side context handles this for now)
 const protectedRoutes = ['/cart']; // Add other routes like '/profile', '/orders' etc. if needed
-// Admin routes are now protected by the /admin/layout.tsx
+// Admin routes are protected by the /admin/layout.tsx
 // Vendor routes are protected by the /vendor/layout.tsx
 
 export function middleware(request: NextRequest) {
@@ -25,15 +26,13 @@ export function middleware(request: NextRequest) {
 
   // Example: If you had a session cookie named 'auth_token'
   // const sessionToken = request.cookies.get('auth_token')?.value;
-  // const role = checkRoleFromToken(sessionToken); // Function to verify token and check role
+  // const { role } = await verifyTokenAndGetRole(sessionToken); // Async function needed
 
-  // if (isAdminRoute && !(role === 'admin' || role === 'superAdmin')) {
-  //    // Redirect non-admins trying to access /admin
+  // if (isAdminRoute && role !== 'superAdmin') { // Only superAdmin for /admin
   //    return NextResponse.redirect(new URL('/', request.url));
   // }
   //
   // if (isVendorRoute && role !== 'vendor') {
-  //    // Redirect non-vendors trying to access /vendor
   //    return NextResponse.redirect(new URL('/', request.url));
   // }
   //
@@ -50,11 +49,11 @@ export function middleware(request: NextRequest) {
   //    return NextResponse.redirect(new URL('/', request.url));
   // }
 
-  // For this simple localStorage example, we rely on client-side routing guards
+  // For this localStorage example, we rely on client-side routing guards
   // within the components or using the AuthContext and the specific role layouts.
   // The middleware structure is here for future enhancement with proper session management.
 
-  console.log(`Middleware check on path: ${pathname}. Is protected? ${isProtectedRoute}. Is admin? ${isAdminRoute}. Is vendor? ${isVendorRoute}`);
+  // console.log(`Middleware check on path: ${pathname}. Is protected? ${isProtectedRoute}. Is admin? ${isAdminRoute}. Is vendor? ${isVendorRoute}`);
 
   // Allow the request to proceed
   return NextResponse.next();
@@ -69,13 +68,13 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - /admin (admin routes are handled by layout)
-     * - /vendor (vendor routes are handled by layout)
-     * - / (the root path itself, handled by page.tsx) - adjust if needed
+     * - /admin/** (admin routes are handled by layout)
+     * - /vendor/** (vendor routes are handled by layout)
      */
      // Updated matcher to exclude role-specific routes handled by layouts
-    '/((?!api|_next/static|_next/image|favicon.ico|admin|vendor).*)',
-     // Include root explicitly if needed, or adjust the negative lookahead
+     // The double asterisk (**) ensures all sub-paths are excluded too.
+    '/((?!api|_next/static|_next/image|favicon.ico|admin|admin/.*|vendor|vendor/.*).*)',
+     // Including the root path explicitly if it needs protection not covered above
      // '/',
   ],
 };
