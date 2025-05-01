@@ -32,7 +32,7 @@ const AboutPage: FC = () => {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              {universityName} is committed to providing excellent facilities and services to its students. Biterush is a project aimed at enhancing the campus dining experience by offering a convenient way to order food from various food courts within the university.
+            We are a dynamic team committed to transforming how food is accessed and enjoyed in campus and urban communities. Our platform connects students, local vendors, and residents through a seamless online food ordering and delivery experience. Focused on reducing food waste and encouraging local entrepreneurship, we provide a smart solution for convenient, reliable, and sustainable food services. Our goal is to make everyday food experiences better, faster, and more impactful.
             </p>
             <p className="text-muted-foreground">
               This application allows students and staff to browse menus, place orders, and pay seamlessly, reducing wait times and improving accessibility to campus food options.
